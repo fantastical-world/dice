@@ -16,7 +16,7 @@ var (
 	buildCommit string
 	buildDate   string
 	semVer      string
-	re          = regexp.MustCompile(`^(?P<num>[0-9]*)[d](?P<sides>[0-9]+)(?P<mod>\+|-)?(?P<mod_num>[0-9]+)?$`)
+	re          = regexp.MustCompile(`^([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?$`)
 )
 
 //Roll rolls the specified number of n-sided dice and returns the rolled results and the sum of those rolls
