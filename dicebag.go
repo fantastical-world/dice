@@ -11,6 +11,13 @@ import (
 	"time"
 )
 
+var (
+	buildBranch string
+	buildCommit string
+	buildDate   string
+	semVer      string
+)
+
 //Roll rolls the specified number of n-sided dice and returns the rolled results and the sum of those rolls
 func Roll(number int, sides int) (rolls []int, sum int) {
 	rand.Seed(time.Now().UnixNano())
