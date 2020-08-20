@@ -1,0 +1,172 @@
+//Package dicebag offers functions for rolling any number of custom sided dice. Typically used in RPGs roll expressions can be specified
+//and translated into the appropriate dice along with modifiers.
+package dicebag
+
+import (
+	"fmt"
+	"math/rand"
+	"regexp"
+	"strconv"
+	"strings"
+	"time"
+)
+
+//Roll rolls the specified number of n-sided dice and returns the rolled results and the sum of those rolls
+func Roll(number int, sides int) (rolls []int, sum int) {
+	rand.Seed(time.Now().UnixNano())
+	rolls = make([]int, number)
+	for i := 0; i < number; i++ {
+		rolls[i] = rand.Intn(sides) + 1
+		sum += rolls[i]
+	}
+
+	return
+}
+
+//RollAndModify rolls the specified number of n-sided dice then adjusts the sum with modifier
+func RollAndModify(number int, sides int, operator string, rollModifier int) (rolls []int, sum int, modifiedSum int) {
+	rolls, sum = Roll(number, sides)
+	modifiedSum = sum
+
+	switch operator {
+	case "-":
+		modifiedSum -= rollModifier
+		return
+	case "+":
+		modifiedSum += rollModifier
+		return
+	}
+
+	return
+}
+
+//RollExpression roll the expression in simple 1d4+1 style (#d#+|-# or #d#)
+func RollExpression(expression string) (rolls []int, sum int, err error) {
+	//check for a special prefix
+	var wantsMax, wantsMin, halfResult, doubleResult bool
+	if strings.HasPrefix(expression, "max:") {
+		wantsMax = true
+		expression = strings.ReplaceAll(expression, "max:", "")
+	}
+
+	if strings.HasPrefix(expression, "min:") {
+		wantsMin = true
+		expression = strings.ReplaceAll(expression, "min:", "")
+	}
+
+	if strings.HasPrefix(expression, "half:") {
+		halfResult = true
+		expression = strings.ReplaceAll(expression, "half:", "")
+	}
+
+	if strings.HasPrefix(expression, "dub:") {
+		doubleResult = true
+		expression = strings.ReplaceAll(expression, "dub:", "")
+	}
+
+	//simple 1d4+1 style (#d#+|-# or #d# or d#)
+	re := regexp.MustCompile(`^(?P<num>[0-9]*)[d](?P<sides>[0-9]+)(?P<mod>\+|-)?(?P<mod_num>[0-9]+)?$`)
+	if !re.MatchString(expression) {
+		return nil, 0, fmt.Errorf("not a valid roll expression, must be d# or #d# or #d#+# or #d#-# (e.g. d100, 1d4, 2d4+1, 2d6-2)")
+	}
+
+	match := re.FindStringSubmatch(expression)
+	number, _ := strconv.Atoi(match[1])
+	if number == 0 {
+		number = 1
+	}
+	sides, _ := strconv.Atoi(match[2])
+
+	if wantsMax {
+		rolls, sum = RollMax(number, sides)
+		return
+	}
+
+	if wantsMin {
+		rolls, sum = RollMin(number, sides)
+		return
+	}
+
+	if match[3] == "" {
+		rolls, sum = Roll(number, sides)
+	} else {
+		modifier, _ := strconv.Atoi(match[4])
+		rolls, _, sum = RollAndModify(number, sides, match[3], modifier)
+	}
+
+	if halfResult {
+		sum = sum / 2
+		return
+	}
+
+	if doubleResult {
+		sum = sum * 2
+		return
+	}
+
+	return
+}
+
+//RollMax returns rolls and max value to use
+func RollMax(number int, sides int) (rolls []int, maxRoll int) {
+	rolls, _ = Roll(number, sides)
+	maxRoll = rolls[0]
+	for _, roll := range rolls {
+		maxRoll = max(maxRoll, roll)
+	}
+
+	return
+}
+
+//RollMin returns rolls and min value to use
+func RollMin(number int, sides int) (rolls []int, minRoll int) {
+	rolls, _ = Roll(number, sides)
+	minRoll = rolls[0]
+	for _, roll := range rolls {
+		minRoll = min(minRoll, roll)
+	}
+
+	return
+}
+
+//RollChallenge rolls
+//An error is returned if the expression is not a valid roll expression.
+func RollChallenge(expression string, against int, equalSucceeds bool, alert []int) (succeeded bool, result int, found []int, err error) {
+	rolls, result, err := RollExpression(expression)
+	if err != nil {
+		return false, 0, nil, err
+	}
+
+	succeeded = (result > against)
+
+	if !succeeded && equalSucceeds {
+		succeeded = (result == against)
+	}
+
+	if alert != nil && (len(alert) > 0) {
+		for _, roll := range rolls {
+			for _, check := range alert {
+				if roll == check {
+					found = append(found, check)
+					break
+				}
+			}
+		}
+	}
+
+	return
+}
+
+func min(x, y int) int {
+	if x < y {
+		return x
+	}
+	return y
+}
+
+func max(x, y int) int {
+	if x > y {
+		return x
+	}
+	return y
+}
