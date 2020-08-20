@@ -16,6 +16,7 @@ var (
 	buildCommit string
 	buildDate   string
 	semVer      string
+	re          = regexp.MustCompile(`^(?P<num>[0-9]*)[d](?P<sides>[0-9]+)(?P<mod>\+|-)?(?P<mod_num>[0-9]+)?$`)
 )
 
 //Roll rolls the specified number of n-sided dice and returns the rolled results and the sum of those rolls
@@ -72,7 +73,6 @@ func RollExpression(expression string) (rolls []int, sum int, err error) {
 	}
 
 	//simple 1d4+1 style (#d#+|-# or #d# or d#)
-	re := regexp.MustCompile(`^(?P<num>[0-9]*)[d](?P<sides>[0-9]+)(?P<mod>\+|-)?(?P<mod_num>[0-9]+)?$`)
 	if !re.MatchString(expression) {
 		return nil, 0, fmt.Errorf("not a valid roll expression, must be d# or #d# or #d#+# or #d#-# (e.g. d100, 1d4, 2d4+1, 2d6-2)")
 	}
@@ -136,7 +136,8 @@ func RollMin(number int, sides int) (rolls []int, minRoll int) {
 	return
 }
 
-//RollChallenge rolls
+//RollChallenge rolls the expression against a provided value. The value must be greater than the challenge value to succeed.
+//If desired the challenge can succeed on equal values by setting equalSucceeds to true.
 //An error is returned if the expression is not a valid roll expression.
 func RollChallenge(expression string, against int, equalSucceeds bool, alert []int) (succeeded bool, result int, found []int, err error) {
 	rolls, result, err := RollExpression(expression)

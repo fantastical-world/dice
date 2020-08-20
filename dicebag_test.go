@@ -348,7 +348,7 @@ func TestRollSimplestExpression(t *testing.T) {
 	}
 	//one roll should be present
 	if len(rolls) != 1 {
-		t.Errorf("expected 1 roll result1, but found %d results\n", len(rolls))
+		t.Errorf("expected 1 roll result, but found %d results\n", len(rolls))
 	}
 	//single roll means sum and roll should be equal
 	if rolls[0] != sum {
@@ -358,6 +358,74 @@ func TestRollSimplestExpression(t *testing.T) {
 	for _, roll := range rolls {
 		if roll < 1 || roll > 6 {
 			t.Errorf("expected roll result to be 1, 2, 3, 4, 5, or 6, but roll was %d\n", roll)
+		}
+	}
+}
+
+func TestAFewRollExpressions(t *testing.T) {
+	rolls, sum, err := RollExpression("d6")
+	if err != nil {
+		t.Errorf("error was not expected, but err was encountered %s\n", err)
+	}
+	//one roll should be present
+	if len(rolls) != 1 {
+		t.Errorf("expected 1 roll result, but found %d results\n", len(rolls))
+	}
+	//single roll means sum and roll should be equal
+	if rolls[0] != sum {
+		t.Errorf("expected sum to be %d, but sum was %d\n", rolls[0], sum)
+	}
+	//rolls should be 1, 2, 3, 4, 5, or 6
+	for _, roll := range rolls {
+		if roll < 1 || roll > 6 {
+			t.Errorf("expected roll result to be 1, 2, 3, 4, 5, or 6, but roll was %d\n", roll)
+		}
+	}
+
+	rolls, sum, err = RollExpression("7d16")
+	if err != nil {
+		t.Errorf("error was not expected, but err was encountered %s\n", err)
+	}
+	//seven roll should be present
+	if len(rolls) != 7 {
+		t.Errorf("expected 7 roll results, but found %d results\n", len(rolls))
+	}
+	//check sum
+	expectedSum := 0
+	for _, roll := range rolls {
+		expectedSum += roll
+	}
+	if expectedSum != sum {
+		t.Errorf("expected sum to be %d, but sum was %d\n", expectedSum, sum)
+	}
+	//rolls should be 1, 2, 3, 4, 5, ... 16
+	for _, roll := range rolls {
+		if roll < 1 || roll > 16 {
+			t.Errorf("expected roll result to be 1, 2, 3, 4, 5, ... 16, but roll was %d\n", roll)
+		}
+	}
+
+	rolls, sum, err = RollExpression("3d20-4")
+	if err != nil {
+		t.Errorf("error was not expected, but err was encountered %s\n", err)
+	}
+	//three roll should be present
+	if len(rolls) != 3 {
+		t.Errorf("expected 3 roll results, but found %d results\n", len(rolls))
+	}
+	//check sum
+	expectedSum = 0
+	for _, roll := range rolls {
+		expectedSum += roll
+	}
+	expectedSum -= 4
+	if expectedSum != sum {
+		t.Errorf("expected sum to be %d, but sum was %d\n", expectedSum, sum)
+	}
+	//rolls should be 1, 2, 3, 4, 5, ... 20
+	for _, roll := range rolls {
+		if roll < 1 || roll > 20 {
+			t.Errorf("expected roll result to be 1, 2, 3, 4, 5, ... 20, but roll was %d\n", roll)
 		}
 	}
 }
