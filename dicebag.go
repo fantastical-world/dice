@@ -19,7 +19,7 @@ var (
 	re          = regexp.MustCompile(`^([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?$`)
 )
 
-//Roll rolls the specified number of n-sided dice and returns the rolled results and the sum of those rolls
+//Roll rolls the specified number of n-sided dice and returns the rolled results and the sum of those rolls.
 func Roll(number int, sides int) (rolls []int, sum int) {
 	rand.Seed(time.Now().UnixNano())
 	rolls = make([]int, number)
@@ -31,7 +31,7 @@ func Roll(number int, sides int) (rolls []int, sum int) {
 	return
 }
 
-//RollAndModify rolls the specified number of n-sided dice then adjusts the sum with modifier
+//RollAndModify rolls the specified number of n-sided dice then adjusts the sum with modifier.
 func RollAndModify(number int, sides int, operator string, rollModifier int) (rolls []int, sum int, modifiedSum int) {
 	rolls, sum = Roll(number, sides)
 	modifiedSum = sum
@@ -48,7 +48,12 @@ func RollAndModify(number int, sides int, operator string, rollModifier int) (ro
 	return
 }
 
-//RollExpression roll the expression in simple 1d4+1 style (#d#+|-# or #d#)
+//ValidRollExpression checks the provided expression and returns true if valid.
+func ValidRollExpression(expression string) bool {
+	return re.MatchString(expression)
+}
+
+//RollExpression roll the expression in simple 1d4+1 style (#d#+|-# or #d#).
 func RollExpression(expression string) (rolls []int, sum int, err error) {
 	//check for a special prefix
 	var wantsMax, wantsMin, halfResult, doubleResult bool
@@ -73,7 +78,7 @@ func RollExpression(expression string) (rolls []int, sum int, err error) {
 	}
 
 	//simple 1d4+1 style (#d#+|-# or #d# or d#)
-	if !re.MatchString(expression) {
+	if !ValidRollExpression(expression) {
 		return nil, 0, fmt.Errorf("not a valid roll expression, must be d# or #d# or #d#+# or #d#-# (e.g. d100, 1d4, 2d4+1, 2d6-2)")
 	}
 
@@ -114,7 +119,7 @@ func RollExpression(expression string) (rolls []int, sum int, err error) {
 	return
 }
 
-//RollMax returns rolls and max value to use
+//RollMax returns rolls and max value to use.
 func RollMax(number int, sides int) (rolls []int, maxRoll int) {
 	rolls, _ = Roll(number, sides)
 	maxRoll = rolls[0]
@@ -125,7 +130,7 @@ func RollMax(number int, sides int) (rolls []int, maxRoll int) {
 	return
 }
 
-//RollMin returns rolls and min value to use
+//RollMin returns rolls and min value to use.
 func RollMin(number int, sides int) (rolls []int, minRoll int) {
 	rolls, _ = Roll(number, sides)
 	minRoll = rolls[0]
