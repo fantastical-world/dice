@@ -197,6 +197,18 @@ func TestRollExpressionWithModifier(t *testing.T) {
 	}
 }
 
+func TestValidator(t *testing.T) {
+	valid := ValidRollExpression("3d4+8")
+	if !valid {
+		t.Errorf("expecting result to be true, but it was %t\n", valid)
+	}
+
+	valid = ValidRollExpression("foobar")
+	if valid {
+		t.Errorf("expecting result to be false, but it was %t\n", valid)
+	}
+}
+
 func TestRollExpressionWithOutModifier(t *testing.T) {
 	rolls, sum, err := RollExpression("5d10")
 	if err != nil {
