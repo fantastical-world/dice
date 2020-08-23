@@ -1,6 +1,7 @@
 package dicebag
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -53,5 +54,43 @@ func TestRollingDiceThatDoesNotExist(t *testing.T) {
 	_, _, err = basicSet.RollDice("not here")
 	if err == nil {
 		t.Errorf("expected an error, but none was received")
+	}
+}
+
+func TestList(t *testing.T) {
+	basicSet := Set{Name: "my dice"}
+	err := basicSet.AddDice("main weapon", "1d20+3")
+	if err != nil {
+		t.Errorf("error encountered when adding dice %s", err)
+	}
+	err = basicSet.AddDice("secondary weapon", "3d6")
+	if err != nil {
+		t.Errorf("error encountered when adding dice %s", err)
+	}
+	err = basicSet.AddDice("Dex Save", "1d20+4")
+	if err != nil {
+		t.Errorf("error encountered when adding dice %s", err)
+	}
+
+	listing := basicSet.ListDice()
+
+	sb := strings.Builder{}
+	sb.WriteString("main weapon 1d20+3\n")
+	sb.WriteString("secondary weapon 3d6\n")
+	sb.WriteString("Dex Save 1d20+4\n")
+
+	expected := sb.String()
+
+	if expected != listing {
+		t.Errorf("listing not as expected\nexpected:\n%s\nactual:\n%s\n", expected, listing)
+	}
+}
+
+func TestNoDiceList(t *testing.T) {
+	basicSet := Set{Name: "my dice"}
+	listing := basicSet.ListDice()
+
+	if "no dice" != listing {
+		t.Errorf("listing not as expected\nexpected:\nno dice\nactual:\n%s\n", listing)
 	}
 }

@@ -1,6 +1,9 @@
 package dicebag
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 //Set hold a set of dice.
 type Set struct {
@@ -38,4 +41,17 @@ func (s *Set) RollDice(name string) (rolls []int, sum int, err error) {
 	rolls, sum, err = RollExpression(expression)
 
 	return
+}
+
+//ListDice returns a string listing of all dice in set.
+func (s *Set) ListDice() string {
+	if s.dice == nil || len(s.dice) == 0 {
+		return "no dice"
+	}
+
+	sb := strings.Builder{}
+	for k, v := range s.dice {
+		sb.WriteString(fmt.Sprintf("%s %s\n", k, v))
+	}
+	return sb.String()
 }
