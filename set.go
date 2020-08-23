@@ -5,7 +5,7 @@ import "fmt"
 //Set hold a set of dice.
 type Set struct {
 	Name string
-	Dice map[string]string
+	dice map[string]string
 }
 
 //AddDice adds a dice to your custom dice set.
@@ -14,22 +14,22 @@ func (s *Set) AddDice(name string, expression string) error {
 		return fmt.Errorf("error %s is not a valid roll expression", expression)
 	}
 
-	if s.Dice == nil {
-		s.Dice = make(map[string]string)
+	if s.dice == nil {
+		s.dice = make(map[string]string)
 	}
 
-	s.Dice[name] = expression
+	s.dice[name] = expression
 
 	return nil
 }
 
-//RollDice rolls the named dice.
+//RollDice rolls the named custom dice.
 func (s *Set) RollDice(name string) (rolls []int, sum int, err error) {
-	if s.Dice == nil || len(s.Dice) == 0 {
+	if s.dice == nil || len(s.dice) == 0 {
 		return rolls, sum, fmt.Errorf("error you do not have any dice in your set")
 	}
 
-	expression := s.Dice[name]
+	expression := s.dice[name]
 
 	if expression == "" {
 		return rolls, sum, fmt.Errorf("error you do not have any dice named [%s] in your set", name)
