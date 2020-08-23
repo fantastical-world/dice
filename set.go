@@ -1,4 +1,4 @@
-package dicebag
+package dice
 
 import (
 	"fmt"
@@ -6,7 +6,8 @@ import (
 	"strings"
 )
 
-//Set hold a set of dice.
+//Set holds custom dice that can be rolled.
+//Dice are added as roll expressions and rolled as needed.
 type Set struct {
 	Name string
 	dice map[string]string

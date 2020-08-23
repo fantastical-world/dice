@@ -1,6 +1,7 @@
-package dicebag
+package dice
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -19,6 +20,17 @@ func TestRollingASingleDice(t *testing.T) {
 	if rolls[0] < 1 || rolls[0] > 6 {
 		t.Errorf("expected roll result to be 1, 2, 3, 4, 5, or 6, but roll was %d\n", rolls[0])
 	}
+}
+func ExampleRoll() {
+	//roll a single six sided dice
+	_, sum := Roll(1, 6)
+	fmt.Printf("you rolled a %d", sum)
+}
+
+func ExampleRoll_2d20() {
+	//roll 2d20 (two 20 sided dice)
+	rolls, sum := Roll(2, 20)
+	fmt.Printf("%v you rolled %d", rolls, sum)
 }
 
 func TestRollingMultipleDice(t *testing.T) {

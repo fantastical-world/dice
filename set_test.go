@@ -1,4 +1,4 @@
-package dicebag
+package dice
 
 import (
 	"strings"

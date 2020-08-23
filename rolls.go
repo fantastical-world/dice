@@ -1,6 +1,6 @@
-//Package dicebag offers functions for rolling any number of custom sided dice. Typically used in RPGs roll expressions can be specified
+//Package dice offers functions for rolling any number of custom sided dice. Typically used in RPGs roll expressions can be specified
 //and translated into the appropriate dice along with modifiers.
-package dicebag
+package dice
 
 import (
 	"fmt"

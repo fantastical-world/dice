@@ -1,4 +1,4 @@
-# Makefile for dicebag package
+# Makefile for dice package
 BRANCH_NAME := $(shell git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/(\1)/')
 BUILD_COMMIT := $(shell git describe --tags --always --dirty --all --match=v*)
 BUILD_DATE := $(shell date -u +%b-%d-%Y,%T-UTC)
@@ -24,7 +24,7 @@ install:
 
 # target: release - will clean, build, install, and finally creates a git tag for the version
 release: dirty-check clean test install
-	git tag -a v$(BUILD_SEMVER) $(BUILD_COMMIT) -m "dicebag release - v$(BUILD_SEMVER)"
+	git tag -a v$(BUILD_SEMVER) $(BUILD_COMMIT) -m "dice release - v$(BUILD_SEMVER)"
 	git push
 
 # target: test - runs tests and generates coverage reports
