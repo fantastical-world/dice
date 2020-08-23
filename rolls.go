@@ -1,5 +1,5 @@
-//Package dice offers functions for rolling any number of custom sided dice. Typically used in RPGs roll expressions can be specified
-//and translated into the appropriate dice along with modifiers.
+//Package dice offers functions for rolling any number of custom dice. Roll functions typically return the result of each dice rolled, their sum, and a modified sum if a modifer was provided.
+//This package also uses "Roll Expressions" that are typically used in RPGs. Roll expressions will be translated into the appropriate number of n-sided dice, and any modifiers.
 package dice
 
 import (
