@@ -75,9 +75,9 @@ func TestList(t *testing.T) {
 	listing := basicSet.ListDice()
 
 	sb := strings.Builder{}
+	sb.WriteString("Dex Save 1d20+4\n")
 	sb.WriteString("main weapon 1d20+3\n")
 	sb.WriteString("secondary weapon 3d6\n")
-	sb.WriteString("Dex Save 1d20+4\n")
 
 	expected := sb.String()
 

@@ -2,6 +2,7 @@ package dicebag
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -49,9 +50,15 @@ func (s *Set) ListDice() string {
 		return "no dice"
 	}
 
+	keys := make([]string, 0, len(s.dice))
+	for key := range s.dice {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
 	sb := strings.Builder{}
-	for k, v := range s.dice {
-		sb.WriteString(fmt.Sprintf("%s %s\n", k, v))
+	for _, k := range keys {
+		sb.WriteString(fmt.Sprintf("%s %s\n", k, s.dice[k]))
 	}
 	return sb.String()
 }
