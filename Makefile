@@ -24,8 +24,8 @@ install:
 
 # target: release - will clean, build, install, and finally creates a git tag for the version
 release: dirty-check clean test install
-	git tag -a v$(BUILD_SEMVER) $(BUILD_COMMIT) -m "dice release - v$(BUILD_SEMVER)"
-	git push
+	git tag v$(BUILD_SEMVER) $(BUILD_COMMIT)
+	git push origin v$(BUILD_SEMVER)
 
 # target: test - runs tests and generates coverage reports
 test:
