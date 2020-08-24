@@ -1,4 +1,5 @@
-//Package dice offers functions for rolling any number of custom dice. Roll functions typically return the result of each dice rolled, their sum, and a modified sum if a modifer was provided.
+//Package dice offers functions and types for rolling any number of custom dice and saving them for later use.
+//You can Roll functions typically return the result of each dice rolled, their sum, and a modified sum if a modifer was provided.
 //This package also uses "Roll Expressions" that are typically used in RPGs. Roll expressions will be translated into the appropriate number of n-sided dice, and any modifiers.
 package dice
 
@@ -56,7 +57,7 @@ func ValidRollExpression(expression string) bool {
 //RollExpression roll the expression in simple 1d4+1 style (#d#+|-# or #d#).
 func RollExpression(expression string) (rolls []int, sum int, err error) {
 	//check for a special prefix
-	var wantsMax, wantsMin, halfResult, doubleResult bool
+	var wantsMax, wantsMin, halfResult, doubleResult, dropLowest, dropHighest bool
 	if strings.HasPrefix(expression, "max:") {
 		wantsMax = true
 		expression = strings.ReplaceAll(expression, "max:", "")
@@ -77,6 +78,16 @@ func RollExpression(expression string) (rolls []int, sum int, err error) {
 		expression = strings.ReplaceAll(expression, "dub:", "")
 	}
 
+	if strings.HasPrefix(expression, "dropL:") {
+		dropLowest = true
+		expression = strings.ReplaceAll(expression, "dropL:", "")
+	}
+
+	if strings.HasPrefix(expression, "dropH:") {
+		dropHighest = true
+		expression = strings.ReplaceAll(expression, "dropH:", "")
+	}
+
 	//simple 1d4+1 style (#d#+|-# or #d# or d#)
 	if !ValidRollExpression(expression) {
 		return nil, 0, fmt.Errorf("not a valid roll expression, must be d# or #d# or #d#+# or #d#-# (e.g. d100, 1d4, 2d4+1, 2d6-2)")
@@ -89,6 +100,7 @@ func RollExpression(expression string) (rolls []int, sum int, err error) {
 	}
 	sides, _ := strconv.Atoi(match[2])
 
+	//Max and Min take place before modifer check because they do not use modifiers
 	if wantsMax {
 		rolls, sum = RollMax(number, sides)
 		return
@@ -99,6 +111,7 @@ func RollExpression(expression string) (rolls []int, sum int, err error) {
 		return
 	}
 
+	//Anything after this comment supports modifiers
 	if match[3] == "" {
 		rolls, sum = Roll(number, sides)
 	} else {
@@ -113,6 +126,24 @@ func RollExpression(expression string) (rolls []int, sum int, err error) {
 
 	if doubleResult {
 		sum = sum * 2
+		return
+	}
+
+	if dropLowest {
+		lowest := rolls[0]
+		for _, roll := range rolls {
+			lowest = min(lowest, roll)
+		}
+		sum = sum - lowest
+		return
+	}
+
+	if dropHighest {
+		highest := rolls[0]
+		for _, roll := range rolls {
+			highest = max(highest, roll)
+		}
+		sum = sum - highest
 		return
 	}
 

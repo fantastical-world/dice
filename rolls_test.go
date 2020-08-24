@@ -365,6 +365,64 @@ func TestRollExpressionHalfPrefix(t *testing.T) {
 	}
 }
 
+func TestRollExpressionDropLowestPrefix(t *testing.T) {
+	rolls, sum, err := RollExpression("dropL:4d6+2")
+	if err != nil {
+		t.Errorf("error was not expected, but err was encountered %s\n", err)
+	}
+	//four rolls should be present
+	if len(rolls) != 4 {
+		t.Errorf("expected 4 roll results, but found %d results\n", len(rolls))
+	}
+	//check sum
+	expectedSum := 0
+	lowest := rolls[0]
+	for _, roll := range rolls {
+		expectedSum += roll
+		lowest = min(lowest, roll)
+	}
+	expectedSum += 2
+	expectedSum -= lowest
+	if expectedSum != sum {
+		t.Errorf("expected sum to be %d, but sum was %d\n", expectedSum, sum)
+	}
+	//rolls should be 1, 2, 3, 4, 5, or 6
+	for _, roll := range rolls {
+		if roll < 1 || roll > 6 {
+			t.Errorf("expected roll result to be 1, 2, 3, 4, 5, or 6, but roll was %d\n", roll)
+		}
+	}
+}
+
+func TestRollExpressionDropHighestPrefix(t *testing.T) {
+	rolls, sum, err := RollExpression("dropH:4d6+2")
+	if err != nil {
+		t.Errorf("error was not expected, but err was encountered %s\n", err)
+	}
+	//four rolls should be present
+	if len(rolls) != 4 {
+		t.Errorf("expected 4 roll results, but found %d results\n", len(rolls))
+	}
+	//check sum
+	expectedSum := 0
+	highest := rolls[0]
+	for _, roll := range rolls {
+		expectedSum += roll
+		highest = max(highest, roll)
+	}
+	expectedSum += 2
+	expectedSum -= highest
+	if expectedSum != sum {
+		t.Errorf("expected sum to be %d, but sum was %d\n", expectedSum, sum)
+	}
+	//rolls should be 1, 2, 3, 4, 5, or 6
+	for _, roll := range rolls {
+		if roll < 1 || roll > 6 {
+			t.Errorf("expected roll result to be 1, 2, 3, 4, 5, or 6, but roll was %d\n", roll)
+		}
+	}
+}
+
 func TestRollSimplestExpression(t *testing.T) {
 	rolls, sum, err := RollExpression("d6")
 	if err != nil {
