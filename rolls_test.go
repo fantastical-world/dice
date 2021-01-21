@@ -286,6 +286,34 @@ func TestRollExpressionMinPrefix(t *testing.T) {
 	}
 }
 
+func TestRollExpressionMinPrefixWithModifier(t *testing.T) {
+	rolls, min, err := RollExpression("min:2d20+3")
+	if err != nil {
+		t.Errorf("error was not expected, but err was encountered %s\n", err)
+	}
+	//two rolls should be present
+	if len(rolls) != 2 {
+		t.Errorf("expected 2 roll results, but found %d results\n", len(rolls))
+	}
+	//check min
+	expectedMin := rolls[0]
+	for _, roll := range rolls {
+		if roll < expectedMin {
+			expectedMin = roll
+		}
+	}
+	expectedMin += 3
+	if expectedMin != min {
+		t.Errorf("expected min to be %d, but min was %d\n", expectedMin, min)
+	}
+	//rolls should be 1, 2, 3, 4, 5, ... 20
+	for _, roll := range rolls {
+		if roll < 1 || roll > 20 {
+			t.Errorf("expected roll result to be 1, 2, 3, 4, 5, ... 20, but roll was %d\n", roll)
+		}
+	}
+}
+
 func TestRollExpressionMaxPrefix(t *testing.T) {
 	rolls, max, err := RollExpression("max:2d20")
 	if err != nil {
@@ -302,6 +330,34 @@ func TestRollExpressionMaxPrefix(t *testing.T) {
 			expectedMax = roll
 		}
 	}
+	if expectedMax != max {
+		t.Errorf("expected max to be %d, but max was %d\n", expectedMax, max)
+	}
+	//rolls should be 1, 2, 3, 4, 5, ... 20
+	for _, roll := range rolls {
+		if roll < 1 || roll > 20 {
+			t.Errorf("expected roll result to be 1, 2, 3, 4, 5, ... 20, but roll was %d\n", roll)
+		}
+	}
+}
+
+func TestRollExpressionMaxPrefixWithModifier(t *testing.T) {
+	rolls, max, err := RollExpression("max:2d20-1")
+	if err != nil {
+		t.Errorf("error was not expected, but err was encountered %s\n", err)
+	}
+	//two rolls should be present
+	if len(rolls) != 2 {
+		t.Errorf("expected 2 roll results, but found %d results\n", len(rolls))
+	}
+	//check max
+	expectedMax := rolls[0]
+	for _, roll := range rolls {
+		if roll > expectedMax {
+			expectedMax = roll
+		}
+	}
+	expectedMax--
 	if expectedMax != max {
 		t.Errorf("expected max to be %d, but max was %d\n", expectedMax, max)
 	}
