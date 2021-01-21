@@ -52,6 +52,21 @@ func RollAndModify(number int, sides int, operator string, rollModifier int) (ro
 	return
 }
 
+//Modify applies the provided modifier to a roll and returns the value.
+func Modify(rolledValue int, operator string, rollModifier int) (modifiedValue int) {
+	modifiedValue = rolledValue
+	switch operator {
+	case "-":
+		modifiedValue -= rollModifier
+		return
+	case "+":
+		modifiedValue += rollModifier
+		return
+	}
+
+	return
+}
+
 //ValidRollExpression validates that the provided expression is formatted correctly returning true if it is valid.
 func ValidRollExpression(expression string) bool {
 	return re.MatchString(expression)
@@ -103,18 +118,26 @@ func RollExpression(expression string) (rolls []int, sum int, err error) {
 	}
 	sides, _ := strconv.Atoi(match[2])
 
-	//Max and Min take place before modifer check because they do not use modifiers
+	//Handle min and max here
 	if wantsMax {
 		rolls, sum = RollMax(number, sides)
+		if match[3] != "" {
+			modifier, _ := strconv.Atoi(match[4])
+			sum = Modify(sum, match[3], modifier)
+		}
 		return
 	}
 
 	if wantsMin {
 		rolls, sum = RollMin(number, sides)
+		if match[3] != "" {
+			modifier, _ := strconv.Atoi(match[4])
+			sum = Modify(sum, match[3], modifier)
+		}
 		return
 	}
 
-	//Anything after this comment supports modifiers
+	//Anything after this comment uses the standard roll
 	if match[3] == "" {
 		rolls, sum = Roll(number, sides)
 	} else {
