@@ -646,3 +646,10 @@ func TestRollChallengeWithInvalidExpression(t *testing.T) {
 		t.Errorf("error was expected, but didn't receive an error\n")
 	}
 }
+
+func TestVersion(t *testing.T) {
+	version := Version()
+	if version == "" {
+		t.Errorf("version was empty, expected non-empty string")
+	}
+}

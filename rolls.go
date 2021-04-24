@@ -229,7 +229,7 @@ func RollChallenge(expression string, against int, equalSucceeds bool, alert []i
 
 //Version returns the current version.
 func Version() string {
-	return fmt.Sprintf("dice version: %s, build %s %s, %s", semVer, buildCommit, buildBranch, buildDate)
+	return fmt.Sprintf("dice version: %s, build %s %s, %s\n", semVer, buildCommit, buildBranch, buildDate)
 }
 
 func min(x, y int) int {
