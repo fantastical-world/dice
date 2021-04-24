@@ -27,7 +27,7 @@ func ExampleRoll() {
 	fmt.Printf("you rolled a %d", sum)
 }
 
-func ExampleRoll_2d20() {
+func ExampleRoll_two20SidedDice() {
 	//roll 2d20 (two 20 sided dice)
 	rolls, sum := Roll(2, 20)
 	fmt.Printf("%v you rolled %d", rolls, sum)
