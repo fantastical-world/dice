@@ -228,14 +228,42 @@ func TestRollExpressionWithModifier(t *testing.T) {
 }
 
 func TestValidator(t *testing.T) {
-	valid := ValidRollExpression("3d4+8")
-	if !valid {
-		t.Errorf("expecting result to be true, but it was %t\n", valid)
+	result := ValidRollExpression("3d4+8")
+	expected := true
+	if result != expected {
+		t.Errorf("expecting result to be %t, but it was %t\n", expected, result)
 	}
 
-	valid = ValidRollExpression("foobar")
-	if valid {
-		t.Errorf("expecting result to be false, but it was %t\n", valid)
+	result = ValidRollExpression("foobar")
+	expected = false
+	if result != expected {
+		t.Errorf("expecting result to be %t, but it was %t\n", expected, result)
+	}
+
+	result = ValidRollExpression("Roll a 2d6 and 3d12+3")
+	expected = false
+	if result != expected {
+		t.Errorf("expecting result to be %t, but it was %t\n", expected, result)
+	}
+}
+
+func TestContains(t *testing.T) {
+	result := ContainsValidRollExpression("3d4+8")
+	expected := 1
+	if result != expected {
+		t.Errorf("expecting result to be %d, but it was %d\n", expected, result)
+	}
+
+	result = ContainsValidRollExpression("foobar")
+	expected = 0
+	if result != expected {
+		t.Errorf("expecting result to be %d, but it was %d\n", expected, result)
+	}
+
+	result = ContainsValidRollExpression("Roll a 2d6 and 3d12+3")
+	expected = 2
+	if result != expected {
+		t.Errorf("expecting result to be %d, but it was %d\n", expected, result)
 	}
 }
 

@@ -72,6 +72,17 @@ func ValidRollExpression(expression string) bool {
 	return re.MatchString(expression)
 }
 
+//ContainsValidRollExpression checks the provided string for valid roll expressions and returns count of valid found.
+func ContainsValidRollExpression(data string) int {
+	re := regexp.MustCompile(`\s*([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?\s*`)
+	all := re.FindAllString(data, -1)
+	if all == nil {
+		return 0
+	}
+
+	return len(all)
+}
+
 //RollExpression will parse the provided roll expression and return its results.
 func RollExpression(expression string) (rolls []int, sum int, err error) {
 	//check for a special prefix
