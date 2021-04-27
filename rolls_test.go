@@ -116,6 +116,24 @@ func TestRollWithUnsupportedModifier(t *testing.T) {
 	}
 }
 
+func TestModifyDirectly(t *testing.T) {
+	modifiedValue := Modify(2, "+", 2)
+	expected := 4
+	if modifiedValue != expected {
+		t.Errorf("+ expected %d, actual %d", expected, modifiedValue)
+	}
+	modifiedValue = Modify(8, "-", 5)
+	expected = 3
+	if modifiedValue != expected {
+		t.Errorf("- expected %d, actual %d", expected, modifiedValue)
+	}
+	modifiedValue = Modify(6, "?", 3)
+	expected = 6
+	if modifiedValue != expected {
+		t.Errorf("? expected %d, actual %d", expected, modifiedValue)
+	}
+}
+
 func TestRollMin(t *testing.T) {
 	//roll 7d20 and provide min (lowest) roll
 	rolls, min := RollMin(7, 20)
