@@ -1,9 +1,14 @@
 //Package dice offers functions and types for rolling any number of custom dice.
-//You can use the various Roll functions directly by passing the number of dice to roll, the number of sides, modifiers, etc. The results returned will typically include the value of each dice rolled, their sum, and a modified sum if a modifer was provided.
+//You can use the various Roll functions directly by passing the number of dice
+//to roll, the number of sides, modifiers, etc. The results returned will typically
+//include the value of each dice rolled, their sum, and a modified sum if a modifer was provided.
 //
-//This package also provides a convenence function that excepts "Roll Expressions". A roll expression follows the typical 1d4+1 format used in most RPGs. With this single function you can satisfy most of your roll needs.
+//This package also provides a convenence function that excepts "Roll Expressions".
+//A roll expression follows the typical 1d4+1 format used in most RPGs.
+//With this single function you can satisfy most of your roll needs.
 //
-//Commonly used rolls can be saved for later use by creating a Set and adding them to it. A set acts like a dice bag except you can save expressions, not just dice.
+//Commonly used rolls can be saved for later use by creating a Set and adding them to it.
+//A set acts like a dice bag except you can save expressions, not just dice.
 package dice
 
 import (
@@ -16,11 +21,7 @@ import (
 )
 
 var (
-	buildBranch string
-	buildCommit string
-	buildDate   string
-	semVer      string
-	re          = regexp.MustCompile(`^([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?$`)
+	re = regexp.MustCompile(`^([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?$`)
 )
 
 //Roll rolls the specified number of n-sided dice and returns the rolled results and their sum.
@@ -35,7 +36,8 @@ func Roll(number int, sides int) (rolls []int, sum int) {
 	return
 }
 
-//RollAndModify rolls the specified number of n-sided dice then applies the provided modifier. The rolled results, their sum, and the modified sum will be returned.
+//RollAndModify rolls the specified number of n-sided dice then applies the provided modifier.
+//The rolled results, their sum, and the modified sum will be returned.
 func RollAndModify(number int, sides int, operator string, rollModifier int) (rolls []int, sum int, modifiedSum int) {
 	rolls, sum = Roll(number, sides)
 	modifiedSum = sum
@@ -129,7 +131,7 @@ func RollExpression(expression string) (rolls []int, sum int, err error) {
 	}
 	sides, _ := strconv.Atoi(match[2])
 
-	//Handle min and max here
+	//handle min and max here
 	if wantsMax {
 		rolls, sum = RollMax(number, sides)
 		if match[3] != "" {
@@ -148,7 +150,7 @@ func RollExpression(expression string) (rolls []int, sum int, err error) {
 		return
 	}
 
-	//Anything after this comment uses the standard roll
+	//anything after this comment uses the standard roll
 	if match[3] == "" {
 		rolls, sum = Roll(number, sides)
 	} else {
@@ -236,11 +238,6 @@ func RollChallenge(expression string, against int, equalSucceeds bool, alert []i
 	}
 
 	return
-}
-
-//Version returns the current version.
-func Version() string {
-	return fmt.Sprintf("dice version: %s, build %s %s, %s\n", semVer, buildCommit, buildBranch, buildDate)
 }
 
 func min(x, y int) int {
