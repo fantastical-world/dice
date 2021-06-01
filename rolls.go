@@ -21,7 +21,8 @@ import (
 )
 
 var (
-	re = regexp.MustCompile(`^([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?$`)
+	re         = regexp.MustCompile(`^([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?$`)     //entire string is a roll expression (e.g. "2d6+3")
+	containsRE = regexp.MustCompile(`\s*([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?\s*`) //any roll expression in a string (e.g. "Hi roll 2d6+3 to hit.")
 )
 
 //Roll rolls the specified number of n-sided dice and returns the rolled results and their sum.
@@ -76,8 +77,7 @@ func ValidRollExpression(expression string) bool {
 
 //ContainsValidRollExpression checks the provided string for valid roll expressions and returns count of valid found.
 func ContainsValidRollExpression(data string) int {
-	re := regexp.MustCompile(`\s*([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?\s*`)
-	all := re.FindAllString(data, -1)
+	all := containsRE.FindAllString(data, -1)
 	if all == nil {
 		return 0
 	}
