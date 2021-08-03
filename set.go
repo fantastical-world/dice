@@ -16,7 +16,7 @@ type Set struct {
 //AddDice will store a roll expression as a custom dice in your set. The name provided can be passed to the RollDice function to roll the expression.
 func (s *Set) AddDice(name string, expression string) error {
 	if !ValidRollExpression(expression) {
-		return fmt.Errorf("error %s is not a valid roll expression", expression)
+		return ErrInvalidRollExpression
 	}
 
 	if s.Dice == nil {
@@ -31,13 +31,13 @@ func (s *Set) AddDice(name string, expression string) error {
 //RollDice rolls the named custom dice's expression and returns its results.
 func (s *Set) RollDice(name string) (rolls []int, sum int, err error) {
 	if s.Dice == nil || len(s.Dice) == 0 {
-		return rolls, sum, fmt.Errorf("error you do not have any dice in your set")
+		return rolls, sum, ErrEmptyDiceSet
 	}
 
 	expression := s.Dice[name]
 
 	if expression == "" {
-		return rolls, sum, fmt.Errorf("error you do not have any dice named [%s] in your set", name)
+		return rolls, sum, ErrDiceNotFound
 	}
 
 	rolls, sum, err = RollExpression(expression)

@@ -12,7 +12,6 @@
 package dice
 
 import (
-	"fmt"
 	"math/rand"
 	"regexp"
 	"strconv"
@@ -122,7 +121,7 @@ func RollExpression(expression string) (rolls []int, sum int, err error) {
 
 	//simple 1d4+1 style (#d#+|-# or #d# or d#)
 	if !ValidRollExpression(expression) {
-		return nil, 0, fmt.Errorf("not a valid roll expression, must be d# or #d# or #d#+# or #d#-# (e.g. d100, 1d4, 2d4+1, 2d6-2)")
+		return nil, 0, ErrInvalidRollExpression
 	}
 
 	match := RollExpressionRE.FindStringSubmatch(expression)
