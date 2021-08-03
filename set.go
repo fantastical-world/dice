@@ -48,7 +48,7 @@ func (s *Set) RollDice(name string) (rolls []int, sum int, err error) {
 //ListDice returns a string listing of all dice names and expressions in the set.
 func (s *Set) ListDice() string {
 	if s.Dice == nil || len(s.Dice) == 0 {
-		return "no dice"
+		return ""
 	}
 
 	keys := make([]string, 0, len(s.Dice))

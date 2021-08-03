@@ -90,7 +90,7 @@ func TestNoDiceList(t *testing.T) {
 	basicSet := Set{Name: "my dice"}
 	listing := basicSet.ListDice()
 
-	if listing != "no dice" {
-		t.Errorf("listing not as expected\nexpected:\nno dice\nactual:\n%s\n", listing)
+	if listing != "" {
+		t.Errorf("want:\ngot:\n%s\n", listing)
 	}
 }
