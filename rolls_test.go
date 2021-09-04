@@ -692,3 +692,42 @@ func TestRollChallengeWithInvalidExpression(t *testing.T) {
 		t.Errorf("error was expected, but didn't receive an error\n")
 	}
 }
+
+func Test_RollString(t *testing.T) {
+	testCases := []struct {
+		name    string
+		rollStr string
+		want    string
+	}{
+		{
+			name:    "validate roll is replaced with valid value...",
+			rollStr: "This should be {{1d1+3}}.",
+			want:    "This should be 4.",
+		},
+		{
+			name:    "validate roll is replaced with valid values...",
+			rollStr: "This should be {{1d1+3}} and {{2d1}}. Right?",
+			want:    "This should be 4 and 2. Right?",
+		},
+		{
+			name:    "validate value is unchanged if no roll expression in string...",
+			rollStr: "This should be the same!",
+			want:    "This should be the same!",
+		},
+		{
+			name:    "validate value is unchanged roll expression invalid...",
+			rollStr: "This should be {{1dbroke}} the same!",
+			want:    "This should be {{1dbroke}} the same!",
+		},
+	}
+
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
+			got := RollString(test.rollStr)
+
+			if got != test.want {
+				t.Errorf("want %s, got %s", test.want, got)
+			}
+		})
+	}
+}

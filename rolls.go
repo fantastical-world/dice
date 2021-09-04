@@ -243,6 +243,23 @@ func RollChallenge(expression string, against int, equalSucceeds bool, alertOn [
 	return
 }
 
+func RollString(value string) string {
+	rolledValue := value
+	if !ContainsRollExpressionBracedRE.MatchString(value) {
+		return value
+	}
+
+	match := ContainsRollExpressionBracedRE.FindAllStringSubmatch(value, 99) //limit to 99 rolls per value
+	for _, m := range match {
+		expression := strings.ReplaceAll(m[0], "{{", "")
+		expression = strings.ReplaceAll(expression, "}}", "")
+		_, sum, _ := RollExpression(strings.Trim(expression, " "))
+		rolledValue = strings.Replace(rolledValue, m[0], strconv.Itoa(sum), 1)
+	}
+
+	return rolledValue
+}
+
 func min(x, y int) int {
 	if x < y {
 		return x
