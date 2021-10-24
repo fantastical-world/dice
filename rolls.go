@@ -20,9 +20,9 @@ import (
 )
 
 var (
-	RollExpressionRE               = regexp.MustCompile(`^([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?$`)         //entire string is a roll expression (e.g. "2d6+3")
-	ContainsRollExpressionRE       = regexp.MustCompile(`\s*([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?\s*`)     //any roll expression in a string (e.g. "Hi roll {{2d6+3}} to hit.")
-	ContainsRollExpressionBracedRE = regexp.MustCompile(`{{\s*([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?\s*}}`) //same as above, but will include braces in matches
+	RollExpressionRE               = regexp.MustCompile(`^([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?((\+|-)([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?)?$`)         //(`^([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?$`)         //entire string is a roll expression (e.g. "2d6+3")
+	ContainsRollExpressionRE       = regexp.MustCompile(`\s*([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?((\+|-)([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?)?\s*`)     //(`\s*([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?\s*`)                                         //any roll expression in a string (e.g. "Hi roll {{2d6+3}} to hit.")
+	ContainsRollExpressionBracedRE = regexp.MustCompile(`{{\s*([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?((\+|-)([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?)?\s*}}`) //(`{{\s*([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?\s*}}`)                                     //same as above, but will include braces in matches
 )
 
 //Roll rolls the specified number of n-sided dice and returns the rolled results and their sum.
@@ -124,7 +124,17 @@ func RollExpression(expression string) (rolls []int, sum int, err error) {
 		return nil, 0, ErrInvalidRollExpression
 	}
 
+	hasSecondExpression := false
 	match := RollExpressionRE.FindStringSubmatch(expression)
+	if match[5] != "" {
+		hasSecondExpression = true
+	}
+
+	//min: and max: prefix is not valid if expression is a pair/double expression
+	if hasSecondExpression && (wantsMax || wantsMin) {
+		return nil, 0, ErrInvalidRollExpression
+	}
+
 	number, _ := strconv.Atoi(match[1])
 	if number == 0 {
 		number = 1
@@ -156,6 +166,33 @@ func RollExpression(expression string) (rolls []int, sum int, err error) {
 	} else {
 		modifier, _ := strconv.Atoi(match[4])
 		rolls, _, sum = RollAndModify(number, sides, match[3], modifier)
+	}
+
+	//let's handle second expression if provided
+	if hasSecondExpression {
+		var secondRolls []int
+		var secondSum int
+
+		secondNumber, _ := strconv.Atoi(match[7])
+		if secondNumber == 0 {
+			secondNumber = 1
+		}
+		secondSides, _ := strconv.Atoi(match[8])
+		if match[9] == "" {
+			secondRolls, secondSum = Roll(secondNumber, secondSides)
+		} else {
+			secondModifier, _ := strconv.Atoi(match[10])
+			secondRolls, _, secondSum = RollAndModify(secondNumber, secondSides, match[9], secondModifier)
+		}
+
+		switch match[6] {
+		case "-":
+			sum -= secondSum
+		case "+":
+			sum += secondSum
+		}
+
+		rolls = append(rolls, secondRolls...)
 	}
 
 	if halfResult {

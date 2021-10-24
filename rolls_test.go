@@ -2,6 +2,7 @@ package dice
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 )
 
@@ -20,17 +21,6 @@ func TestRollingASingleDice(t *testing.T) {
 	if rolls[0] < 1 || rolls[0] > 6 {
 		t.Errorf("expected roll result to be 1, 2, 3, 4, 5, or 6, but roll was %d\n", rolls[0])
 	}
-}
-func ExampleRoll() {
-	//roll a single six sided dice
-	_, sum := Roll(1, 6)
-	fmt.Printf("you rolled a %d", sum)
-}
-
-func ExampleRoll_two20SidedDice() {
-	//roll 2d20 (two 20 sided dice)
-	rolls, sum := Roll(2, 20)
-	fmt.Printf("%v you rolled %d", rolls, sum)
 }
 
 func TestRollingMultipleDice(t *testing.T) {
@@ -201,94 +191,287 @@ func TestRollRange(t *testing.T) {
 	}
 }
 
-func TestRollExpressionWithModifier(t *testing.T) {
-	rolls, sum, err := RollExpression("2d20+3")
-	if err != nil {
-		t.Errorf("error was not expected, but err was encountered %s\n", err)
+func Test_ValidRollExpression(t *testing.T) {
+	testCases := []struct {
+		expression string
+		want       bool
+	}{
+		{
+			expression: "3d4+8",
+			want:       true,
+		},
+		{
+			expression: "d8-1",
+			want:       true,
+		},
+		{
+			expression: "1d12+3+1d8",
+			want:       true,
+		},
+		{
+			expression: "d12+3-d8",
+			want:       true,
+		},
+		{
+			expression: "2d20+", //+0
+			want:       true,
+		},
+		{
+			expression: "2d20-", //-0
+			want:       true,
+		},
+		{
+			expression: "2d20+1+",
+			want:       false,
+		},
+		{
+			expression: "2d20+1-",
+			want:       false,
+		},
+		{
+			expression: "1Z12+3/1d8",
+			want:       false,
+		},
+		{
+			expression: "foo+notbar",
+			want:       false,
+		},
+		{
+			expression: "heyo",
+			want:       false,
+		},
+		{
+			expression: "Roll a 2d6 and 3d12+3",
+			want:       false,
+		},
 	}
-	//two rolls should be present
-	if len(rolls) != 2 {
-		t.Errorf("expected 2 roll results, but found %d results\n", len(rolls))
-	}
-	//check sum
-	expectedSum := 0
-	for _, roll := range rolls {
-		expectedSum += roll
-	}
-	expectedSum += 3
-	if expectedSum != sum {
-		t.Errorf("expected sum to be %d, but sum was %d\n", expectedSum, sum)
-	}
-	//rolls should be 1, 2, 3, 4, 5, ... 20
-	for _, roll := range rolls {
-		if roll < 1 || roll > 20 {
-			t.Errorf("expected roll result to be 1, 2, 3, 4, 5, ... 20, but roll was %d\n", roll)
-		}
+
+	for i, tc := range testCases {
+		t.Run(fmt.Sprintf("%d) %s", i, tc.expression), func(t *testing.T) {
+			got := ValidRollExpression(tc.expression)
+			if got != tc.want {
+				t.Errorf("want %t, got %t", tc.want, got)
+			}
+		})
 	}
 }
 
-func TestValidator(t *testing.T) {
-	result := ValidRollExpression("3d4+8")
-	expected := true
-	if result != expected {
-		t.Errorf("expecting result to be %t, but it was %t\n", expected, result)
+func Test_ContainsValidRollExpression(t *testing.T) {
+	testCases := []struct {
+		text string
+		want int
+	}{
+		{
+			text: "3d4+8",
+			want: 1,
+		},
+		{
+			text: "2W20+3",
+			want: 0,
+		},
+		{
+			text: "foobar",
+			want: 0,
+		},
+		{
+			text: "Roll a 2d6 and 3d12+3",
+			want: 2,
+		},
+		{
+			text: "These go together 2d12+3+d8, but not with this {{2d6}}",
+			want: 2,
+		},
 	}
 
-	result = ValidRollExpression("foobar")
-	expected = false
-	if result != expected {
-		t.Errorf("expecting result to be %t, but it was %t\n", expected, result)
-	}
-
-	result = ValidRollExpression("Roll a 2d6 and 3d12+3")
-	expected = false
-	if result != expected {
-		t.Errorf("expecting result to be %t, but it was %t\n", expected, result)
+	for i, tc := range testCases {
+		t.Run(fmt.Sprintf("%d) %s", i, tc.text), func(t *testing.T) {
+			got := ContainsValidRollExpression(tc.text)
+			if got != tc.want {
+				t.Errorf("want %d, got %d", tc.want, got)
+			}
+		})
 	}
 }
 
-func TestContains(t *testing.T) {
-	result := ContainsValidRollExpression("3d4+8")
-	expected := 1
-	if result != expected {
-		t.Errorf("expecting result to be %d, but it was %d\n", expected, result)
+func Test_RollExpression(t *testing.T) {
+	simpleCases := []struct {
+		expression string
+		rolls      []int
+		sum        int
+		err        error
+	}{
+		{
+			expression: "2d1+3",
+			rolls:      []int{1, 1},
+			sum:        5,
+			err:        nil,
+		},
+		{
+			expression: "3d1",
+			rolls:      []int{1, 1, 1},
+			sum:        3,
+			err:        nil,
+		},
+		{
+			expression: "3d1+2d1+3",
+			rolls:      []int{1, 1, 1, 1, 1},
+			sum:        8,
+			err:        nil,
+		},
+		{
+			expression: "heyo",
+			rolls:      nil,
+			sum:        0,
+			err:        ErrInvalidRollExpression,
+		},
+		{
+			expression: "a5d10*zz",
+			rolls:      nil,
+			sum:        0,
+			err:        ErrInvalidRollExpression,
+		},
 	}
 
-	result = ContainsValidRollExpression("foobar")
-	expected = 0
-	if result != expected {
-		t.Errorf("expecting result to be %d, but it was %d\n", expected, result)
+	for i, tc := range simpleCases {
+		t.Run(fmt.Sprintf("%d) %s", i, tc.expression), func(t *testing.T) {
+			rolls, sum, err := RollExpression(tc.expression)
+			if !reflect.DeepEqual(rolls, tc.rolls) {
+				t.Errorf("want %v, got %v", tc.rolls, rolls)
+			}
+			if sum != tc.sum {
+				t.Errorf("want %d, got %d", tc.sum, sum)
+			}
+			if err != tc.err {
+				t.Errorf("want %s, got %s", tc.err, err)
+			}
+		})
 	}
 
-	result = ContainsValidRollExpression("Roll a 2d6 and 3d12+3")
-	expected = 2
-	if result != expected {
-		t.Errorf("expecting result to be %d, but it was %d\n", expected, result)
+	advancedCases := []struct {
+		expression string
+		modifer    int
+		rollLen    int
+		rollMin    int
+		rollMax    int
+		err        error
+	}{
+		{
+			expression: "5d10",
+			rollLen:    5,
+			rollMin:    1,
+			rollMax:    10,
+			err:        nil,
+		},
+		{
+			expression: "d10",
+			rollLen:    1,
+			rollMin:    1,
+			rollMax:    10,
+			err:        nil,
+		},
+		{
+			expression: "1d20+6",
+			modifer:    6,
+			rollLen:    1,
+			rollMin:    1,
+			rollMax:    20,
+			err:        nil,
+		},
+		{
+			expression: "3d33+",
+			modifer:    0,
+			rollLen:    3,
+			rollMin:    1,
+			rollMax:    33,
+			err:        nil,
+		},
+		{
+			expression: "6d12-",
+			modifer:    0,
+			rollLen:    6,
+			rollMin:    1,
+			rollMax:    12,
+			err:        nil,
+		},
+		{
+			expression: "2d20+3",
+			modifer:    3,
+			rollLen:    2,
+			rollMin:    1,
+			rollMax:    20,
+			err:        nil,
+		},
+		{
+			expression: "3d6-2",
+			modifer:    -2,
+			rollLen:    3,
+			rollMin:    1,
+			rollMax:    6,
+			err:        nil,
+		},
+		{
+			expression: "2d1+3",
+			modifer:    3,
+			rollLen:    2,
+			rollMin:    1,
+			rollMax:    1,
+			err:        nil,
+		},
+		{
+			expression: "2d20+3+2d6+1",
+			modifer:    4,
+			rollLen:    4,
+			rollMin:    1,
+			rollMax:    20,
+			err:        nil,
+		},
+		{
+			expression: "d12+d8",
+			rollLen:    2,
+			rollMin:    1,
+			rollMax:    12,
+			err:        nil,
+		},
+		/*{
+			expression: "d12-d3", //subtraction of second needs another way to test
+			rollLen:    2,
+			rollMin:    1,
+			rollMax:    12,
+			err:        nil,
+		},*/
+		{
+			expression: "heyo",
+			rollLen:    0,
+			err:        ErrInvalidRollExpression,
+		},
 	}
-}
 
-func TestRollExpressionWithOutModifier(t *testing.T) {
-	rolls, sum, err := RollExpression("5d10")
-	if err != nil {
-		t.Errorf("error was not expected, but err was encountered %s\n", err)
-	}
-	//five rolls should be present
-	if len(rolls) != 5 {
-		t.Errorf("expected 5 roll results, but found %d results\n", len(rolls))
-	}
-	//check sum
-	expectedSum := 0
-	for _, roll := range rolls {
-		expectedSum += roll
-	}
-	if expectedSum != sum {
-		t.Errorf("expected sum to be %d, but sum was %d\n", expectedSum, sum)
-	}
-	//rolls should be 1, 2, 3, 4, 5, ... 10
-	for _, roll := range rolls {
-		if roll < 1 || roll > 10 {
-			t.Errorf("expected roll result to be 1, 2, 3, 4, 5, ... 10, but roll was %d\n", roll)
-		}
+	for i, tc := range advancedCases {
+		t.Run(fmt.Sprintf("%d) %s", i, tc.expression), func(t *testing.T) {
+			rolls, sum, err := RollExpression(tc.expression)
+			if len(rolls) != tc.rollLen {
+				t.Errorf("[len] want %d, got %d", tc.rollLen, len(rolls))
+			}
+
+			wantSum := 0
+			for _, roll := range rolls {
+				wantSum += roll
+			}
+			wantSum += tc.modifer
+			if wantSum != sum {
+				t.Errorf("[sum] want %d, got %d", wantSum, sum)
+			}
+
+			for _, roll := range rolls {
+				if roll < tc.rollMin || roll > tc.rollMax {
+					t.Errorf("[rolls] want roll %d-%d, got %d", tc.rollMin, tc.rollMax, roll)
+				}
+			}
+
+			if err != tc.err {
+				t.Errorf("[err] want %s, got %s", tc.err, err)
+			}
+		})
 	}
 }
 
