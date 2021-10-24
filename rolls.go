@@ -20,9 +20,9 @@ import (
 )
 
 var (
-	RollExpressionRE               = regexp.MustCompile(`^([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?((\+|-)([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?)?$`)         //(`^([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?$`)         //entire string is a roll expression (e.g. "2d6+3")
-	ContainsRollExpressionRE       = regexp.MustCompile(`\s*([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?((\+|-)([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?)?\s*`)     //(`\s*([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?\s*`)                                         //any roll expression in a string (e.g. "Hi roll {{2d6+3}} to hit.")
-	ContainsRollExpressionBracedRE = regexp.MustCompile(`{{\s*([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?((\+|-)([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?)?\s*}}`) //(`{{\s*([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?\s*}}`)                                     //same as above, but will include braces in matches
+	RollExpressionRE               = regexp.MustCompile(`^([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?((\+|-)([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?)?$`)         //entire string is a roll expression (e.g. "2d6+3") pre-pair-regex (`^([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?$`)
+	ContainsRollExpressionRE       = regexp.MustCompile(`\s*([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?((\+|-)([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?)?\s*`)     //any roll expression in a string (e.g. "Hi roll {{2d6+3}} to hit.") pre-pair-regex (`\s*([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?\s*`)
+	ContainsRollExpressionBracedRE = regexp.MustCompile(`{{\s*([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?((\+|-)([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?)?\s*}}`) //same as above, but will include braces in matches, pre-pair-regex (`{{\s*([0-9]*)[d]([0-9]+)(\+|-)?([0-9]+)?\s*}}`)
 )
 
 //Roll rolls the specified number of n-sided dice and returns the rolled results and their sum.
