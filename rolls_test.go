@@ -347,13 +347,14 @@ func Test_RollExpression(t *testing.T) {
 		})
 	}
 
-	advancedCases := []struct {
-		expression string
-		modifer    int
-		rollLen    int
-		rollMin    int
-		rollMax    int
-		err        error
+	detailedCases := []struct {
+		expression  string //expression to test
+		subtractDie int    //if expression pair and second is to be subtracted number of die in second expression
+		modifer     int    //the total value of the modifiers, negative numbers work also
+		rollLen     int    //the total number of die rolled
+		rollMin     int    //the lowest possible die number
+		rollMax     int    //the highest possible die number
+		err         error  //error if one is expected
 	}{
 		{
 			expression: "5d10",
@@ -426,19 +427,34 @@ func Test_RollExpression(t *testing.T) {
 			err:        nil,
 		},
 		{
+			expression:  "d12+3-2d4",
+			subtractDie: 2,
+			modifer:     3,
+			rollLen:     3,
+			rollMin:     1,
+			rollMax:     12,
+			err:         nil,
+		},
+		{
 			expression: "d12+d8",
 			rollLen:    2,
 			rollMin:    1,
 			rollMax:    12,
 			err:        nil,
 		},
-		/*{
-			expression: "d12-d3", //subtraction of second needs another way to test
-			rollLen:    2,
-			rollMin:    1,
-			rollMax:    12,
-			err:        nil,
-		},*/
+		{
+			expression:  "d12-d3",
+			subtractDie: 1,
+			rollLen:     2,
+			rollMin:     1,
+			rollMax:     12,
+			err:         nil,
+		},
+		{
+			expression: "min:2d20+1d6",
+			rollLen:    0,
+			err:        ErrInvalidRollExpression,
+		},
 		{
 			expression: "heyo",
 			rollLen:    0,
@@ -446,7 +462,7 @@ func Test_RollExpression(t *testing.T) {
 		},
 	}
 
-	for i, tc := range advancedCases {
+	for i, tc := range detailedCases {
 		t.Run(fmt.Sprintf("%d) %s", i, tc.expression), func(t *testing.T) {
 			rolls, sum, err := RollExpression(tc.expression)
 			if len(rolls) != tc.rollLen {
@@ -454,7 +470,11 @@ func Test_RollExpression(t *testing.T) {
 			}
 
 			wantSum := 0
-			for _, roll := range rolls {
+			for r, roll := range rolls {
+				if tc.subtractDie > 0 && r >= (tc.rollLen-tc.subtractDie) {
+					wantSum -= roll
+					continue
+				}
 				wantSum += roll
 			}
 			wantSum += tc.modifer
