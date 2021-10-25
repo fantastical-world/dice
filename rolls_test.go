@@ -6,121 +6,196 @@ import (
 	"testing"
 )
 
-func TestRollingASingleDice(t *testing.T) {
-	//roll a single six sided dice
-	rolls, sum := Roll(1, 6)
-	//only one roll should be present
-	if len(rolls) != 1 {
-		t.Errorf("expected 1 roll result, but found %d results\n", len(rolls))
+func Test_Roll(t *testing.T) {
+	testCases := []struct {
+		number  int
+		sides   int
+		rollLen int
+		rollMin int
+		rollMax int
+	}{
+		{
+			number:  1,
+			sides:   6,
+			rollLen: 1,
+			rollMin: 1,
+			rollMax: 6,
+		},
+		{
+			number:  4,
+			sides:   6,
+			rollLen: 4,
+			rollMin: 1,
+			rollMax: 6,
+		},
+		{
+			number:  3,
+			sides:   20,
+			rollLen: 3,
+			rollMin: 1,
+			rollMax: 20,
+		},
 	}
-	//single roll means sum and roll should be equal
-	if rolls[0] != sum {
-		t.Errorf("expected roll result and sum to be equal, but roll was %d and sum was %d\n", rolls[0], sum)
-	}
-	//roll should be 1, 2, 3, 4, 5, or 6
-	if rolls[0] < 1 || rolls[0] > 6 {
-		t.Errorf("expected roll result to be 1, 2, 3, 4, 5, or 6, but roll was %d\n", rolls[0])
+
+	for i, tc := range testCases {
+		t.Run(fmt.Sprintf("%d) number %d, sides %d", i, tc.number, tc.sides), func(t *testing.T) {
+			rolls, sum := Roll(tc.number, tc.sides)
+			if len(rolls) != tc.rollLen {
+				t.Errorf("[len] want %d, got %d", tc.rollLen, len(rolls))
+			}
+
+			wantSum := 0
+			for _, roll := range rolls {
+				wantSum += roll
+			}
+			if wantSum != sum {
+				t.Errorf("[sum] want %d, got %d", wantSum, sum)
+			}
+
+			for _, roll := range rolls {
+				if roll < tc.rollMin || roll > tc.rollMax {
+					t.Errorf("[rolls] want roll %d-%d, got %d", tc.rollMin, tc.rollMax, roll)
+				}
+			}
+		})
 	}
 }
 
-func TestRollingMultipleDice(t *testing.T) {
-	//roll four six sided dice
-	rolls, sum := Roll(4, 6)
-	//four rolls should be present
-	if len(rolls) != 4 {
-		t.Errorf("expected 4 roll results, but found %d results\n", len(rolls))
+func Test_RollAndModify(t *testing.T) {
+	testCases := []struct {
+		number   int
+		sides    int
+		operator string
+		modifer  int
+		rollLen  int
+		rollMin  int
+		rollMax  int
+		err      error
+	}{
+		{
+			number:   2,
+			sides:    6,
+			operator: "+",
+			modifer:  3,
+			rollLen:  2,
+			rollMin:  1,
+			rollMax:  6,
+			err:      nil,
+		},
+		{
+			number:   2,
+			sides:    10,
+			operator: "-",
+			modifer:  4,
+			rollLen:  2,
+			rollMin:  1,
+			rollMax:  10,
+			err:      nil,
+		},
+		{
+			number:   2,
+			sides:    20,
+			operator: "Z",
+			modifer:  3,
+			rollLen:  0,
+			rollMin:  0,
+			rollMax:  0,
+			err:      ErrInvalidOperator,
+		},
+		{
+			number:   3,
+			sides:    4,
+			operator: "-",
+			modifer:  12,
+			rollLen:  3,
+			rollMin:  1,
+			rollMax:  4,
+			err:      nil,
+		},
 	}
-	//check sum
-	expectedSum := 0
-	for _, roll := range rolls {
-		expectedSum += roll
-	}
-	if expectedSum != sum {
-		t.Errorf("expected roll results to equal sum when added, but roll results equaled %d and sum was %d\n", expectedSum, sum)
-	}
-	//rolls should be 1, 2, 3, 4, 5, or 6
-	for _, roll := range rolls {
-		if roll < 1 || roll > 6 {
-			t.Errorf("expected roll result to be 1, 2, 3, 4, 5, or 6, but roll was %d\n", roll)
-		}
+
+	for i, tc := range testCases {
+		t.Run(fmt.Sprintf("%d) number %d, sides %d, operator %s, modifier %d", i, tc.number, tc.sides, tc.operator, tc.modifer), func(t *testing.T) {
+			rolls, sum, modSum, err := RollAndModify(tc.number, tc.sides, tc.operator, tc.modifer)
+			if len(rolls) != tc.rollLen {
+				t.Errorf("[len] want %d, got %d", tc.rollLen, len(rolls))
+			}
+
+			wantSum := 0
+			for _, roll := range rolls {
+				wantSum += roll
+			}
+			if wantSum != sum {
+				t.Errorf("[sum] want %d, got %d", wantSum, sum)
+			}
+
+			wantModSum := wantSum
+			switch tc.operator {
+			case "+":
+				wantModSum += tc.modifer
+			case "-":
+				wantModSum -= tc.modifer
+			}
+			if wantModSum != modSum {
+				t.Errorf("[mod sum] want %d, got %d", wantModSum, modSum)
+			}
+
+			for _, roll := range rolls {
+				if roll < tc.rollMin || roll > tc.rollMax {
+					t.Errorf("[rolls] want roll %d-%d, got %d", tc.rollMin, tc.rollMax, roll)
+				}
+			}
+
+			if err != tc.err {
+				t.Errorf("[err] want %s, got %s", tc.err, err)
+			}
+		})
 	}
 }
 
-func TestRollWithAddModifier(t *testing.T) {
-	//roll two six sided dice and add three to result sum
-	rolls, sum, modSum := RollAndModify(2, 6, "+", 3)
-	if len(rolls) != 2 {
-		t.Errorf("expected 2 roll results, but found %d results\n", len(rolls))
+func Test_Modify(t *testing.T) {
+	testCases := []struct {
+		value    int
+		operator string
+		modifer  int
+		want     int
+		err      error
+	}{
+		{
+			value:    2,
+			operator: "+",
+			modifer:  2,
+			want:     4,
+			err:      nil,
+		},
+		{
+			value:    8,
+			operator: "-",
+			modifer:  5,
+			want:     3,
+			err:      nil,
+		},
+		{
+			value:    6,
+			operator: "?",
+			modifer:  1,
+			want:     0,
+			err:      ErrInvalidOperator,
+		},
 	}
-	//check sum
-	expectedSum := 0
-	for _, roll := range rolls {
-		expectedSum += roll
-	}
-	if expectedSum != sum {
-		t.Errorf("expected roll results to equal sum when added, but roll results equaled %d and sum was %d\n", expectedSum, sum)
-	}
-	//check modified sum, it should be sum plus three
-	if modSum != (sum + 3) {
-		t.Errorf("expected modified sum to be sum + 3, but modified sum equaled %d and sum was %d\n", modSum, sum)
-	}
-}
 
-func TestRollWithSubtractModifier(t *testing.T) {
-	//roll two ten sided dice and subtract four to result sum
-	rolls, sum, modSum := RollAndModify(2, 10, "-", 4)
-	if len(rolls) != 2 {
-		t.Errorf("expected 2 roll results, but found %d results\n", len(rolls))
-	}
-	//check sum
-	expectedSum := 0
-	for _, roll := range rolls {
-		expectedSum += roll
-	}
-	if expectedSum != sum {
-		t.Errorf("expected roll results to equal sum when added, but roll results equaled %d and sum was %d\n", expectedSum, sum)
-	}
-	//check modified sum, it should be sum minus four
-	if modSum != (sum - 4) {
-		t.Errorf("expected modified sum to be sum - 4, but modified sum equaled %d and sum was %d\n", modSum, sum)
-	}
-}
+	for i, tc := range testCases {
+		t.Run(fmt.Sprintf("%d) value %d, operator %s, modifer %d", i, tc.value, tc.operator, tc.modifer), func(t *testing.T) {
+			got, err := Modify(tc.value, tc.operator, tc.modifer)
 
-func TestRollWithUnsupportedModifier(t *testing.T) {
-	//roll two ten sided dice and pass an unsupported operator
-	rolls, sum, modSum := RollAndModify(2, 10, "z", 4)
-	if len(rolls) != 2 {
-		t.Errorf("expected 2 roll results, but found %d results\n", len(rolls))
-	}
-	//check sum
-	expectedSum := 0
-	for _, roll := range rolls {
-		expectedSum += roll
-	}
-	if expectedSum != sum {
-		t.Errorf("expected roll results to equal sum when added, but roll results equaled %d and sum was %d\n", expectedSum, sum)
-	}
-	//check modified sum, it should equal sum because operator is unsupported
-	if modSum != sum {
-		t.Errorf("expected modified sum to equal sum, but modified sum equaled %d and sum was %d\n", modSum, sum)
-	}
-}
+			if got != tc.want {
+				t.Errorf("[mod sum] want %d, got %d", tc.want, got)
+			}
 
-func TestModifyDirectly(t *testing.T) {
-	modifiedValue := Modify(2, "+", 2)
-	expected := 4
-	if modifiedValue != expected {
-		t.Errorf("+ expected %d, actual %d", expected, modifiedValue)
-	}
-	modifiedValue = Modify(8, "-", 5)
-	expected = 3
-	if modifiedValue != expected {
-		t.Errorf("- expected %d, actual %d", expected, modifiedValue)
-	}
-	modifiedValue = Modify(6, "?", 3)
-	expected = 6
-	if modifiedValue != expected {
-		t.Errorf("? expected %d, actual %d", expected, modifiedValue)
+			if err != tc.err {
+				t.Errorf("[err] want %s, got %s", tc.err, err)
+			}
+		})
 	}
 }
 
@@ -213,11 +288,11 @@ func Test_ValidRollExpression(t *testing.T) {
 			want:       true,
 		},
 		{
-			expression: "2d20+", //+0
+			expression: "2d20+", //acts as +0
 			want:       true,
 		},
 		{
-			expression: "2d20-", //-0
+			expression: "2d20-", //acts as -0
 			want:       true,
 		},
 		{
@@ -492,19 +567,6 @@ func Test_RollExpression(t *testing.T) {
 				t.Errorf("[err] want %s, got %s", tc.err, err)
 			}
 		})
-	}
-}
-
-func TestRollInvalidExpression(t *testing.T) {
-	rolls, sum, err := RollExpression("a5d10*zz")
-	if err == nil {
-		t.Errorf("error was expected, but didn't receive an error\n")
-	}
-	if rolls != nil {
-		t.Errorf("rolls should be nil, but received %v\n", rolls)
-	}
-	if sum != 0 {
-		t.Errorf("expected sum to be 0, but sum was %d\n", sum)
 	}
 }
 

@@ -26,48 +26,51 @@ var (
 )
 
 //Roll rolls the specified number of n-sided dice and returns the rolled results and their sum.
-func Roll(number int, sides int) (rolls []int, sum int) {
+func Roll(number int, sides int) ([]int, int) {
 	rand.Seed(time.Now().UnixNano())
-	rolls = make([]int, number)
+	rolls := make([]int, number)
+	sum := 0
 	for i := 0; i < number; i++ {
 		rolls[i] = rand.Intn(sides) + 1
 		sum += rolls[i]
 	}
 
-	return
+	return rolls, sum
 }
 
 //RollAndModify rolls the specified number of n-sided dice then applies the provided modifier.
 //The rolled results, their sum, and the modified sum will be returned.
-func RollAndModify(number int, sides int, operator string, rollModifier int) (rolls []int, sum int, modifiedSum int) {
-	rolls, sum = Roll(number, sides)
-	modifiedSum = sum
+//An error is returned if the operator is anything other than + or -.
+func RollAndModify(number int, sides int, operator string, rollModifier int) ([]int, int, int, error) {
+	rolls, sum := Roll(number, sides)
+	modifiedSum := sum
 
 	switch operator {
 	case "-":
 		modifiedSum -= rollModifier
-		return
 	case "+":
 		modifiedSum += rollModifier
-		return
+	default:
+		return nil, 0, 0, ErrInvalidOperator
 	}
 
-	return
+	return rolls, sum, modifiedSum, nil
 }
 
 //Modify applies the provided modifier to a roll and returns the value.
-func Modify(rolledValue int, operator string, rollModifier int) (modifiedValue int) {
-	modifiedValue = rolledValue
+//An error is returned if the operator is anything other than + or -.
+func Modify(rolledValue int, operator string, rollModifier int) (int, error) {
+	modifiedValue := rolledValue
 	switch operator {
 	case "-":
 		modifiedValue -= rollModifier
-		return
 	case "+":
 		modifiedValue += rollModifier
-		return
+	default:
+		return 0, ErrInvalidOperator
 	}
 
-	return
+	return modifiedValue, nil
 }
 
 //ValidRollExpression validates that the provided expression is formatted correctly returning true if it is valid.
@@ -146,7 +149,7 @@ func RollExpression(expression string) (rolls []int, sum int, err error) {
 		rolls, sum = RollMax(number, sides)
 		if match[3] != "" {
 			modifier, _ := strconv.Atoi(match[4])
-			sum = Modify(sum, match[3], modifier)
+			sum, _ = Modify(sum, match[3], modifier)
 		}
 		return
 	}
@@ -155,7 +158,7 @@ func RollExpression(expression string) (rolls []int, sum int, err error) {
 		rolls, sum = RollMin(number, sides)
 		if match[3] != "" {
 			modifier, _ := strconv.Atoi(match[4])
-			sum = Modify(sum, match[3], modifier)
+			sum, _ = Modify(sum, match[3], modifier)
 		}
 		return
 	}
@@ -165,7 +168,7 @@ func RollExpression(expression string) (rolls []int, sum int, err error) {
 		rolls, sum = Roll(number, sides)
 	} else {
 		modifier, _ := strconv.Atoi(match[4])
-		rolls, _, sum = RollAndModify(number, sides, match[3], modifier)
+		rolls, _, sum, _ = RollAndModify(number, sides, match[3], modifier)
 	}
 
 	//let's handle second expression if provided
@@ -182,7 +185,7 @@ func RollExpression(expression string) (rolls []int, sum int, err error) {
 			secondRolls, secondSum = Roll(secondNumber, secondSides)
 		} else {
 			secondModifier, _ := strconv.Atoi(match[10])
-			secondRolls, _, secondSum = RollAndModify(secondNumber, secondSides, match[9], secondModifier)
+			secondRolls, _, secondSum, _ = RollAndModify(secondNumber, secondSides, match[9], secondModifier)
 		}
 
 		switch match[6] {
