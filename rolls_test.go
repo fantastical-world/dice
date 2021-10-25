@@ -312,7 +312,8 @@ func Test_RollExpression(t *testing.T) {
 		expression               string //expression to test
 		secondExpressionDieCount int    //the number of die in the second expression if present
 		subtractDie              bool   //should the second expression die be subtracted
-		modifer                  int    //the total value of the modifiers, negative numbers work also
+		modifer                  int    //the main expression modifier, negative numbers work also
+		secondModifier           int    //the second expression modifier, negative numbers work also
 		rollLen                  int    //the total number of die rolled
 		rollMin                  int    //the lowest possible die number
 		rollMax                  int    //the highest possible die number
@@ -396,6 +397,17 @@ func Test_RollExpression(t *testing.T) {
 			err:        nil,
 		},
 		{
+			expression:               "2d20+3-2d6-1",
+			secondExpressionDieCount: 2,
+			subtractDie:              true,
+			modifer:                  3,
+			secondModifier:           -1,
+			rollLen:                  4,
+			rollMin:                  1,
+			rollMax:                  20,
+			err:                      nil,
+		},
+		{
 			expression:               "d12+3-2d4",
 			secondExpressionDieCount: 2,
 			subtractDie:              true,
@@ -440,15 +452,26 @@ func Test_RollExpression(t *testing.T) {
 				t.Errorf("[len] want %d, got %d", tc.rollLen, len(rolls))
 			}
 
+			//handle sum for main expression
 			wantSum := 0
-			for r, roll := range rolls {
-				if tc.subtractDie && r >= (tc.rollLen-tc.secondExpressionDieCount) {
-					wantSum -= roll
-					continue
-				}
+			for _, roll := range rolls[:(tc.rollLen - tc.secondExpressionDieCount)] {
 				wantSum += roll
 			}
 			wantSum += tc.modifer
+
+			//handle second expression if present
+			wantSumSecond := 0
+			for _, roll := range rolls[(tc.rollLen - tc.secondExpressionDieCount):] {
+				wantSumSecond += roll
+			}
+			wantSumSecond += tc.secondModifier
+
+			if tc.subtractDie {
+				wantSum -= wantSumSecond
+			} else {
+				wantSum += wantSumSecond
+			}
+
 			if wantSum != sum {
 				t.Errorf("[sum] want %d, got %d", wantSum, sum)
 			}
@@ -617,6 +640,7 @@ func Test_RollExpression(t *testing.T) {
 		secondExpressionDieCount int
 		subtractDie              bool
 		modifer                  int
+		secondModifier           int
 		rollLen                  int
 		rollMin                  int
 		rollMax                  int
@@ -656,6 +680,28 @@ func Test_RollExpression(t *testing.T) {
 			err:                      nil,
 		},
 		{
+			expression:               "dub:3d20+3-2d6-1",
+			secondExpressionDieCount: 2,
+			subtractDie:              true,
+			modifer:                  3,
+			secondModifier:           -1,
+			rollLen:                  5,
+			rollMin:                  1,
+			rollMax:                  20,
+			err:                      nil,
+		},
+		{
+			expression:               "dub:3d20+3-2d6+3",
+			secondExpressionDieCount: 2,
+			subtractDie:              true,
+			modifer:                  3,
+			secondModifier:           +3,
+			rollLen:                  5,
+			rollMin:                  1,
+			rollMax:                  20,
+			err:                      nil,
+		},
+		{
 			expression: "dub:2E20fff",
 			rollLen:    0,
 			rollMin:    0,
@@ -671,15 +717,26 @@ func Test_RollExpression(t *testing.T) {
 				t.Errorf("[len] want %d, got %d", tc.rollLen, len(rolls))
 			}
 
+			//handle sum for main expression
 			wantSum := 0
-			for r, roll := range rolls {
-				if tc.subtractDie && r >= (tc.rollLen-tc.secondExpressionDieCount) {
-					wantSum -= roll
-					continue
-				}
+			for _, roll := range rolls[:(tc.rollLen - tc.secondExpressionDieCount)] {
 				wantSum += roll
 			}
 			wantSum += tc.modifer
+
+			//handle second expression if present
+			wantSumSecond := 0
+			for _, roll := range rolls[(tc.rollLen - tc.secondExpressionDieCount):] {
+				wantSumSecond += roll
+			}
+			wantSumSecond += tc.secondModifier
+
+			if tc.subtractDie {
+				wantSum -= wantSumSecond
+			} else {
+				wantSum += wantSumSecond
+			}
+
 			wantSum *= 2
 			if wantSum != sum {
 				t.Errorf("[sum] want %d, got %d", wantSum, sum)
@@ -702,6 +759,7 @@ func Test_RollExpression(t *testing.T) {
 		secondExpressionDieCount int
 		subtractDie              bool
 		modifer                  int
+		secondModifier           int
 		rollLen                  int
 		rollMin                  int
 		rollMax                  int
@@ -731,6 +789,16 @@ func Test_RollExpression(t *testing.T) {
 			err:        nil,
 		},
 		{
+			expression:               "half:3d20+3+2d6-1",
+			secondExpressionDieCount: 2,
+			modifer:                  3,
+			secondModifier:           -1,
+			rollLen:                  5,
+			rollMin:                  1,
+			rollMax:                  20,
+			err:                      nil,
+		},
+		{
 			expression:               "half:3d20+3-2d6",
 			secondExpressionDieCount: 2,
 			subtractDie:              true,
@@ -756,15 +824,25 @@ func Test_RollExpression(t *testing.T) {
 				t.Errorf("[len] want %d, got %d", tc.rollLen, len(rolls))
 			}
 
+			//handle sum for main expression
 			wantSum := 0
-			for r, roll := range rolls {
-				if tc.subtractDie && r >= (tc.rollLen-tc.secondExpressionDieCount) {
-					wantSum -= roll
-					continue
-				}
+			for _, roll := range rolls[:(tc.rollLen - tc.secondExpressionDieCount)] {
 				wantSum += roll
 			}
 			wantSum += tc.modifer
+
+			//handle second expression if present
+			wantSumSecond := 0
+			for _, roll := range rolls[(tc.rollLen - tc.secondExpressionDieCount):] {
+				wantSumSecond += roll
+			}
+			wantSumSecond += tc.secondModifier
+
+			if tc.subtractDie {
+				wantSum -= wantSumSecond
+			} else {
+				wantSum += wantSumSecond
+			}
 			wantSum /= 2
 			if wantSum != sum {
 				t.Errorf("[sum] want %d, got %d", wantSum, sum)
@@ -866,6 +944,8 @@ func Test_RollExpression(t *testing.T) {
 
 				wantSum += roll
 			}
+			wantSum += tc.modifer
+			wantSum -= lowest
 
 			//handle second expression if present
 			wantSumSecond := 0
@@ -874,9 +954,6 @@ func Test_RollExpression(t *testing.T) {
 			}
 			wantSumSecond += tc.secondModifier
 
-			wantSum += tc.modifer
-			wantSum -= lowest
-
 			if tc.subtractDie {
 				wantSum -= wantSumSecond
 			} else {
@@ -884,7 +961,6 @@ func Test_RollExpression(t *testing.T) {
 			}
 
 			if wantSum != sum {
-				t.Errorf("[sum rolls] %v", rolls)
 				t.Errorf("[sum] want %d, got %d", wantSum, sum)
 			}
 
@@ -984,6 +1060,8 @@ func Test_RollExpression(t *testing.T) {
 
 				wantSum += roll
 			}
+			wantSum += tc.modifer
+			wantSum -= highest
 
 			//handle second expression if present
 			wantSumSecond := 0
@@ -991,9 +1069,6 @@ func Test_RollExpression(t *testing.T) {
 				wantSumSecond += roll
 			}
 			wantSumSecond += tc.secondModifier
-
-			wantSum += tc.modifer
-			wantSum -= highest
 
 			if tc.subtractDie {
 				wantSum -= wantSumSecond
