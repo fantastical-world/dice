@@ -89,6 +89,8 @@ func ContainsValidRollExpression(data string) int {
 }
 
 //RollExpression will parse the provided roll expression and return its results.
+//An error is returned if the expression is invalid. The min: and max: can cause
+//an error if they are used with an expression pair.
 func RollExpression(expression string) (rolls []int, sum int, err error) {
 	//check for a special prefix
 	var wantsMax, wantsMin, halfResult, doubleResult, dropLowest, dropHighest bool
@@ -133,7 +135,7 @@ func RollExpression(expression string) (rolls []int, sum int, err error) {
 		hasSecondExpression = true
 	}
 
-	//min: and max: prefix is not valid if expression is a pair/double expression
+	//min: and max: prefix is not valid if expression is a pair/double expression.
 	if hasSecondExpression && (wantsMax || wantsMin) {
 		return nil, 0, ErrInvalidRollExpression
 	}
