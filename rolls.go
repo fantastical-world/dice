@@ -173,6 +173,23 @@ func RollExpression(expression string) (rolls []int, sum int, err error) {
 		rolls, _, sum, _ = RollAndModify(number, sides, match[3], modifier)
 	}
 
+	//the drop prefixes only apply to the first expression, the second expression is treated like a modifier
+	if dropLowest {
+		lowest := rolls[0]
+		for _, roll := range rolls {
+			lowest = min(lowest, roll)
+		}
+		sum = sum - lowest
+	}
+
+	if dropHighest {
+		highest := rolls[0]
+		for _, roll := range rolls {
+			highest = max(highest, roll)
+		}
+		sum = sum - highest
+	}
+
 	//let's handle second expression if provided
 	if hasSecondExpression {
 		var secondRolls []int
@@ -207,24 +224,6 @@ func RollExpression(expression string) (rolls []int, sum int, err error) {
 
 	if doubleResult {
 		sum = sum * 2
-		return
-	}
-
-	if dropLowest {
-		lowest := rolls[0]
-		for _, roll := range rolls {
-			lowest = min(lowest, roll)
-		}
-		sum = sum - lowest
-		return
-	}
-
-	if dropHighest {
-		highest := rolls[0]
-		for _, roll := range rolls {
-			highest = max(highest, roll)
-		}
-		sum = sum - highest
 		return
 	}
 

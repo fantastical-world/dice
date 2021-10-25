@@ -309,13 +309,14 @@ func Test_ContainsValidRollExpression(t *testing.T) {
 
 func Test_RollExpression(t *testing.T) {
 	detailedCases := []struct {
-		expression  string //expression to test
-		subtractDie int    //if expression pair and second is to be subtracted number of die in second expression
-		modifer     int    //the total value of the modifiers, negative numbers work also
-		rollLen     int    //the total number of die rolled
-		rollMin     int    //the lowest possible die number
-		rollMax     int    //the highest possible die number
-		err         error  //error if one is expected
+		expression               string //expression to test
+		secondExpressionDieCount int    //the number of die in the second expression if present
+		subtractDie              bool   //should the second expression die be subtracted
+		modifer                  int    //the total value of the modifiers, negative numbers work also
+		rollLen                  int    //the total number of die rolled
+		rollMin                  int    //the lowest possible die number
+		rollMax                  int    //the highest possible die number
+		err                      error  //error if one is expected
 	}{
 		{
 			expression: "d6",
@@ -395,13 +396,14 @@ func Test_RollExpression(t *testing.T) {
 			err:        nil,
 		},
 		{
-			expression:  "d12+3-2d4",
-			subtractDie: 2,
-			modifer:     3,
-			rollLen:     3,
-			rollMin:     1,
-			rollMax:     12,
-			err:         nil,
+			expression:               "d12+3-2d4",
+			secondExpressionDieCount: 2,
+			subtractDie:              true,
+			modifer:                  3,
+			rollLen:                  3,
+			rollMin:                  1,
+			rollMax:                  12,
+			err:                      nil,
 		},
 		{
 			expression: "d12+d8",
@@ -411,12 +413,13 @@ func Test_RollExpression(t *testing.T) {
 			err:        nil,
 		},
 		{
-			expression:  "d12-d3",
-			subtractDie: 1,
-			rollLen:     2,
-			rollMin:     1,
-			rollMax:     12,
-			err:         nil,
+			expression:               "d12-d3",
+			secondExpressionDieCount: 1,
+			subtractDie:              true,
+			rollLen:                  2,
+			rollMin:                  1,
+			rollMax:                  12,
+			err:                      nil,
 		},
 		{
 			expression: "heyo",
@@ -439,7 +442,7 @@ func Test_RollExpression(t *testing.T) {
 
 			wantSum := 0
 			for r, roll := range rolls {
-				if tc.subtractDie > 0 && r >= (tc.rollLen-tc.subtractDie) {
+				if tc.subtractDie && r >= (tc.rollLen-tc.secondExpressionDieCount) {
 					wantSum -= roll
 					continue
 				}
@@ -610,13 +613,14 @@ func Test_RollExpression(t *testing.T) {
 	}
 
 	dubTestCases := []struct {
-		expression  string
-		subtractDie int
-		modifer     int
-		rollLen     int
-		rollMin     int
-		rollMax     int
-		err         error
+		expression               string
+		secondExpressionDieCount int
+		subtractDie              bool
+		modifer                  int
+		rollLen                  int
+		rollMin                  int
+		rollMax                  int
+		err                      error
 	}{
 		{
 			expression: "dub:3d8",
@@ -642,13 +646,14 @@ func Test_RollExpression(t *testing.T) {
 			err:        nil,
 		},
 		{
-			expression:  "dub:3d20+3-2d6",
-			subtractDie: 2,
-			modifer:     3,
-			rollLen:     5,
-			rollMin:     1,
-			rollMax:     20,
-			err:         nil,
+			expression:               "dub:3d20+3-2d6",
+			secondExpressionDieCount: 2,
+			subtractDie:              true,
+			modifer:                  3,
+			rollLen:                  5,
+			rollMin:                  1,
+			rollMax:                  20,
+			err:                      nil,
 		},
 		{
 			expression: "dub:2E20fff",
@@ -668,7 +673,7 @@ func Test_RollExpression(t *testing.T) {
 
 			wantSum := 0
 			for r, roll := range rolls {
-				if tc.subtractDie > 0 && r >= (tc.rollLen-tc.subtractDie) {
+				if tc.subtractDie && r >= (tc.rollLen-tc.secondExpressionDieCount) {
 					wantSum -= roll
 					continue
 				}
@@ -693,13 +698,14 @@ func Test_RollExpression(t *testing.T) {
 	}
 
 	halfTestCases := []struct {
-		expression  string
-		subtractDie int
-		modifer     int
-		rollLen     int
-		rollMin     int
-		rollMax     int
-		err         error
+		expression               string
+		secondExpressionDieCount int
+		subtractDie              bool
+		modifer                  int
+		rollLen                  int
+		rollMin                  int
+		rollMax                  int
+		err                      error
 	}{
 		{
 			expression: "half:4d13",
@@ -725,13 +731,14 @@ func Test_RollExpression(t *testing.T) {
 			err:        nil,
 		},
 		{
-			expression:  "half:3d20+3-2d6",
-			subtractDie: 2,
-			modifer:     3,
-			rollLen:     5,
-			rollMin:     1,
-			rollMax:     20,
-			err:         nil,
+			expression:               "half:3d20+3-2d6",
+			secondExpressionDieCount: 2,
+			subtractDie:              true,
+			modifer:                  3,
+			rollLen:                  5,
+			rollMin:                  1,
+			rollMax:                  20,
+			err:                      nil,
 		},
 		{
 			expression: "half:2E20fff",
@@ -751,7 +758,7 @@ func Test_RollExpression(t *testing.T) {
 
 			wantSum := 0
 			for r, roll := range rolls {
-				if tc.subtractDie > 0 && r >= (tc.rollLen-tc.subtractDie) {
+				if tc.subtractDie && r >= (tc.rollLen-tc.secondExpressionDieCount) {
 					wantSum -= roll
 					continue
 				}
@@ -776,13 +783,15 @@ func Test_RollExpression(t *testing.T) {
 	}
 
 	dropLTestCases := []struct {
-		expression  string
-		subtractDie int
-		modifer     int
-		rollLen     int
-		rollMin     int
-		rollMax     int
-		err         error
+		expression               string
+		secondExpressionDieCount int
+		subtractDie              bool
+		modifer                  int
+		secondModifier           int
+		rollLen                  int
+		rollMin                  int
+		rollMax                  int
+		err                      error
 	}{
 		{
 			expression: "dropL:4d13",
@@ -800,21 +809,34 @@ func Test_RollExpression(t *testing.T) {
 			err:        nil,
 		},
 		{
-			expression: "dropL:3d8+3+d6", //not sure of rules, but I think maybe the drop should only happen on first expression?
-			modifer:    3,
-			rollLen:    4,
-			rollMin:    1,
-			rollMax:    8,
-			err:        nil,
+			expression:               "dropL:3d8+3+d6",
+			secondExpressionDieCount: 1,
+			modifer:                  3,
+			rollLen:                  4,
+			rollMin:                  1,
+			rollMax:                  8,
+			err:                      nil,
 		},
 		{
-			expression:  "dropL:3d20+3-2d6", //not sure of rules, but I think maybe the drop should only happen on first expression?
-			subtractDie: 2,
-			modifer:     3,
-			rollLen:     5,
-			rollMin:     1,
-			rollMax:     20,
-			err:         nil,
+			expression:               "dropL:2d12+4-d6-2",
+			secondExpressionDieCount: 1,
+			subtractDie:              true,
+			modifer:                  4,
+			secondModifier:           -2,
+			rollLen:                  3,
+			rollMin:                  1,
+			rollMax:                  12,
+			err:                      nil,
+		},
+		{
+			expression:               "dropL:3d20+3-2d6",
+			secondExpressionDieCount: 2,
+			subtractDie:              true,
+			modifer:                  3,
+			rollLen:                  5,
+			rollMin:                  1,
+			rollMax:                  20,
+			err:                      nil,
 		},
 		{
 			expression: "dropL:2E20fff",
@@ -832,24 +854,37 @@ func Test_RollExpression(t *testing.T) {
 				t.Errorf("[len] want %d, got %d", tc.rollLen, len(rolls))
 			}
 
+			//handle sum for main expression
 			wantSum := 0
 			lowest := 0
-			for r, roll := range rolls {
+			for r, roll := range rolls[:(tc.rollLen - tc.secondExpressionDieCount)] {
 				if r == 0 {
 					lowest = roll
 				} else if roll < lowest {
 					lowest = roll
 				}
 
-				if tc.subtractDie > 0 && r >= (tc.rollLen-tc.subtractDie) {
-					wantSum -= roll
-					continue
-				}
 				wantSum += roll
 			}
+
+			//handle second expression if present
+			wantSumSecond := 0
+			for _, roll := range rolls[(tc.rollLen - tc.secondExpressionDieCount):] {
+				wantSumSecond += roll
+			}
+			wantSumSecond += tc.secondModifier
+
 			wantSum += tc.modifer
 			wantSum -= lowest
+
+			if tc.subtractDie {
+				wantSum -= wantSumSecond
+			} else {
+				wantSum += wantSumSecond
+			}
+
 			if wantSum != sum {
+				t.Errorf("[sum rolls] %v", rolls)
 				t.Errorf("[sum] want %d, got %d", wantSum, sum)
 			}
 
@@ -866,13 +901,15 @@ func Test_RollExpression(t *testing.T) {
 	}
 
 	dropHTestCases := []struct {
-		expression  string
-		subtractDie int
-		modifer     int
-		rollLen     int
-		rollMin     int
-		rollMax     int
-		err         error
+		expression               string
+		secondExpressionDieCount int
+		subtractDie              bool
+		modifer                  int
+		secondModifier           int
+		rollLen                  int
+		rollMin                  int
+		rollMax                  int
+		err                      error
 	}{
 		{
 			expression: "dropH:4d13",
@@ -890,21 +927,34 @@ func Test_RollExpression(t *testing.T) {
 			err:        nil,
 		},
 		{
-			expression: "dropH:3d8+3+d6", //not sure of rules, but I think maybe the drop should only happen on first expression?
-			modifer:    3,
-			rollLen:    4,
-			rollMin:    1,
-			rollMax:    8,
-			err:        nil,
+			expression:               "dropH:3d8+3+d6",
+			secondExpressionDieCount: 1,
+			modifer:                  3,
+			rollLen:                  4,
+			rollMin:                  1,
+			rollMax:                  8,
+			err:                      nil,
 		},
 		{
-			expression:  "dropH:3d20+3-2d6", //not sure of rules, but I think maybe the drop should only happen on first expression?
-			subtractDie: 2,
-			modifer:     3,
-			rollLen:     5,
-			rollMin:     1,
-			rollMax:     20,
-			err:         nil,
+			expression:               "dropH:2d12+4-d6-2",
+			secondExpressionDieCount: 1,
+			subtractDie:              true,
+			modifer:                  4,
+			secondModifier:           -2,
+			rollLen:                  3,
+			rollMin:                  1,
+			rollMax:                  12,
+			err:                      nil,
+		},
+		{
+			expression:               "dropH:3d20+3-2d6",
+			secondExpressionDieCount: 2,
+			subtractDie:              true,
+			modifer:                  3,
+			rollLen:                  5,
+			rollMin:                  1,
+			rollMax:                  20,
+			err:                      nil,
 		},
 		{
 			expression: "dropH:2E20fff",
@@ -922,23 +972,35 @@ func Test_RollExpression(t *testing.T) {
 				t.Errorf("[len] want %d, got %d", tc.rollLen, len(rolls))
 			}
 
+			//handle sum for main expression
 			wantSum := 0
 			highest := 0
-			for r, roll := range rolls {
+			for r, roll := range rolls[:(tc.rollLen - tc.secondExpressionDieCount)] {
 				if r == 0 {
 					highest = roll
 				} else if roll > highest {
 					highest = roll
 				}
 
-				if tc.subtractDie > 0 && r >= (tc.rollLen-tc.subtractDie) {
-					wantSum -= roll
-					continue
-				}
 				wantSum += roll
 			}
+
+			//handle second expression if present
+			wantSumSecond := 0
+			for _, roll := range rolls[(tc.rollLen - tc.secondExpressionDieCount):] {
+				wantSumSecond += roll
+			}
+			wantSumSecond += tc.secondModifier
+
 			wantSum += tc.modifer
 			wantSum -= highest
+
+			if tc.subtractDie {
+				wantSum -= wantSumSecond
+			} else {
+				wantSum += wantSumSecond
+			}
+
 			if wantSum != sum {
 				t.Errorf("[sum] want %d, got %d", wantSum, sum)
 			}
