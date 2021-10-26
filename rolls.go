@@ -30,6 +30,9 @@ func Roll(number int, sides int) ([]int, int, error) {
 	if number < 0 {
 		return nil, 0, ErrInvalidNumberOfDice
 	}
+	if sides < 0 {
+		return nil, 0, ErrInvalidNumberOfSides
+	}
 	rand.Seed(time.Now().UnixNano())
 	rolls := make([]int, number)
 	sum := 0
@@ -47,6 +50,9 @@ func Roll(number int, sides int) ([]int, int, error) {
 func RollAndModify(number int, sides int, operator string, rollModifier int) ([]int, int, int, error) {
 	if number < 0 {
 		return nil, 0, 0, ErrInvalidNumberOfDice
+	}
+	if sides < 0 {
+		return nil, 0, 0, ErrInvalidNumberOfSides
 	}
 	rolls, sum, _ := Roll(number, sides)
 	modifiedSum := sum
@@ -253,6 +259,9 @@ func RollMax(number int, sides int) ([]int, int, error) {
 	if number < 0 {
 		return nil, 0, ErrInvalidNumberOfDice
 	}
+	if sides < 0 {
+		return nil, 0, ErrInvalidNumberOfSides
+	}
 	rolls, _, _ := Roll(number, sides)
 	maxRoll := 0
 	for r, roll := range rolls {
@@ -270,6 +279,9 @@ func RollMax(number int, sides int) ([]int, int, error) {
 func RollMin(number int, sides int) ([]int, int, error) {
 	if number < 0 {
 		return nil, 0, ErrInvalidNumberOfDice
+	}
+	if sides < 0 {
+		return nil, 0, ErrInvalidNumberOfSides
 	}
 	rolls, _, _ := Roll(number, sides)
 	minRoll := 0

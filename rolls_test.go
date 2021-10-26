@@ -51,6 +51,11 @@ func Test_Roll(t *testing.T) {
 			sides:  6,
 			err:    ErrInvalidNumberOfDice,
 		},
+		{
+			number: 2,
+			sides:  -6,
+			err:    ErrInvalidNumberOfSides,
+		},
 	}
 
 	for i, tc := range testCases {
@@ -124,6 +129,12 @@ func Test_RollAndModify(t *testing.T) {
 			sides:    4,
 			operator: "+",
 			err:      ErrInvalidNumberOfDice,
+		},
+		{
+			number:   1,
+			sides:    -4,
+			operator: "-",
+			err:      ErrInvalidNumberOfSides,
 		},
 		{
 			number:   3,
@@ -1214,6 +1225,11 @@ func Test_RollMax(t *testing.T) {
 			sides:  6,
 			err:    ErrInvalidNumberOfDice,
 		},
+		{
+			number: 3,
+			sides:  -6,
+			err:    ErrInvalidNumberOfSides,
+		},
 	}
 
 	for i, tc := range testCases {
@@ -1280,6 +1296,11 @@ func Test_RollMin(t *testing.T) {
 			number: -1,
 			sides:  6,
 			err:    ErrInvalidNumberOfDice,
+		},
+		{
+			number: 2,
+			sides:  -4,
+			err:    ErrInvalidNumberOfSides,
 		},
 	}
 

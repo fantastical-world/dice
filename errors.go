@@ -10,4 +10,5 @@ var (
 	ErrDiceNotFound          = DiceError("dice not found")
 	ErrInvalidOperator       = DiceError("invalid operator")
 	ErrInvalidNumberOfDice   = DiceError("invalid number of dice")
+	ErrInvalidNumberOfSides  = DiceError("invalid number of sides")
 )
