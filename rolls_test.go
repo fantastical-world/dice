@@ -12,6 +12,7 @@ func Test_Roll(t *testing.T) {
 		rollLen int
 		rollMin int
 		rollMax int
+		err     error
 	}{
 		{
 			number:  1,
@@ -45,11 +46,16 @@ func Test_Roll(t *testing.T) {
 			number: 0,
 			sides:  4,
 		},
+		{
+			number: -1,
+			sides:  6,
+			err:    ErrInvalidNumberOfDice,
+		},
 	}
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("%d) number %d, sides %d", i, tc.number, tc.sides), func(t *testing.T) {
-			rolls, sum := Roll(tc.number, tc.sides)
+			rolls, sum, err := Roll(tc.number, tc.sides)
 			if len(rolls) != tc.rollLen {
 				t.Errorf("[len] want %d, got %d", tc.rollLen, len(rolls))
 			}
@@ -66,6 +72,10 @@ func Test_Roll(t *testing.T) {
 				if roll < tc.rollMin || roll > tc.rollMax {
 					t.Errorf("[rolls] want roll %d-%d, got %d", tc.rollMin, tc.rollMax, roll)
 				}
+			}
+
+			if err != tc.err {
+				t.Errorf("[err] want %s, got %s", tc.err, err)
 			}
 		})
 	}
@@ -108,6 +118,12 @@ func Test_RollAndModify(t *testing.T) {
 			operator: "Z",
 			modifer:  3,
 			err:      ErrInvalidOperator,
+		},
+		{
+			number:   -1,
+			sides:    4,
+			operator: "+",
+			err:      ErrInvalidNumberOfDice,
 		},
 		{
 			number:   3,
@@ -284,6 +300,10 @@ func Test_ValidRollExpression(t *testing.T) {
 			expression: "0d4+8",
 			want:       true,
 		},
+		{
+			expression: "-3d4",
+			want:       false,
+		},
 	}
 
 	for i, tc := range testCases {
@@ -323,6 +343,10 @@ func Test_ContainsValidRollExpression(t *testing.T) {
 		},
 		{
 			text: "Roll no dice 0d6+3 but add three anyways.",
+			want: 1,
+		},
+		{
+			text: "Nope-2d6+3", //no way to know in text if - is a negative number or just a dash
 			want: 1,
 		},
 	}
@@ -472,6 +496,10 @@ func Test_RollExpression(t *testing.T) {
 			err:        ErrInvalidRollExpression,
 		},
 		{
+			expression: "-2d4+3",
+			err:        ErrInvalidRollExpression,
+		},
+		{
 			expression: "0d4+3",
 			modifer:    3,
 			err:        nil,
@@ -563,6 +591,10 @@ func Test_RollExpression(t *testing.T) {
 		},
 		{
 			expression: "max:2d20zzz",
+			err:        ErrInvalidRollExpression,
+		},
+		{
+			expression: "max:-3d6+3",
 			err:        ErrInvalidRollExpression,
 		},
 	}
@@ -1157,6 +1189,7 @@ func Test_RollMax(t *testing.T) {
 		rollLen int
 		rollMin int
 		rollMax int
+		err     error
 	}{
 		{
 			number:  7,
@@ -1176,11 +1209,16 @@ func Test_RollMax(t *testing.T) {
 			number: 0,
 			sides:  4,
 		},
+		{
+			number: -3,
+			sides:  6,
+			err:    ErrInvalidNumberOfDice,
+		},
 	}
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("%d) number %d, sides %d", i, tc.number, tc.sides), func(t *testing.T) {
-			rolls, max := RollMax(tc.number, tc.sides)
+			rolls, max, err := RollMax(tc.number, tc.sides)
 			if len(rolls) != tc.rollLen {
 				t.Errorf("[len] want %d, got %d", tc.rollLen, len(rolls))
 			}
@@ -1204,6 +1242,10 @@ func Test_RollMax(t *testing.T) {
 					t.Errorf("[rolls] want roll %d-%d, got %d", tc.rollMin, tc.rollMax, roll)
 				}
 			}
+
+			if err != tc.err {
+				t.Errorf("[err] want %s, got %s", tc.err, err)
+			}
 		})
 	}
 }
@@ -1214,6 +1256,7 @@ func Test_RollMin(t *testing.T) {
 		rollLen int
 		rollMin int
 		rollMax int
+		err     error
 	}{
 		{
 			number:  7,
@@ -1233,11 +1276,16 @@ func Test_RollMin(t *testing.T) {
 			number: 0,
 			sides:  100,
 		},
+		{
+			number: -1,
+			sides:  6,
+			err:    ErrInvalidNumberOfDice,
+		},
 	}
 
 	for i, tc := range testCases {
 		t.Run(fmt.Sprintf("%d) number %d, sides %d", i, tc.number, tc.sides), func(t *testing.T) {
-			rolls, min := RollMin(tc.number, tc.sides)
+			rolls, min, err := RollMin(tc.number, tc.sides)
 			if len(rolls) != tc.rollLen {
 				t.Errorf("[len] want %d, got %d", tc.rollLen, len(rolls))
 			}
@@ -1260,6 +1308,10 @@ func Test_RollMin(t *testing.T) {
 				if roll < tc.rollMin || roll > tc.rollMax {
 					t.Errorf("[rolls] want roll %d-%d, got %d", tc.rollMin, tc.rollMax, roll)
 				}
+			}
+
+			if err != tc.err {
+				t.Errorf("[err] want %s, got %s", tc.err, err)
 			}
 		})
 	}

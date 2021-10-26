@@ -26,7 +26,10 @@ var (
 )
 
 //Roll rolls the specified number of n-sided dice and returns the rolled results and their sum.
-func Roll(number int, sides int) ([]int, int) {
+func Roll(number int, sides int) ([]int, int, error) {
+	if number < 0 {
+		return nil, 0, ErrInvalidNumberOfDice
+	}
 	rand.Seed(time.Now().UnixNano())
 	rolls := make([]int, number)
 	sum := 0
@@ -35,14 +38,17 @@ func Roll(number int, sides int) ([]int, int) {
 		sum += rolls[i]
 	}
 
-	return rolls, sum
+	return rolls, sum, nil
 }
 
 //RollAndModify rolls the specified number of n-sided dice then applies the provided modifier.
 //The rolled results, their sum, and the modified sum will be returned.
 //An error is returned if the operator is anything other than + or -.
 func RollAndModify(number int, sides int, operator string, rollModifier int) ([]int, int, int, error) {
-	rolls, sum := Roll(number, sides)
+	if number < 0 {
+		return nil, 0, 0, ErrInvalidNumberOfDice
+	}
+	rolls, sum, _ := Roll(number, sides)
 	modifiedSum := sum
 
 	switch operator {
@@ -149,7 +155,7 @@ func RollExpression(expression string) ([]int, int, error) {
 
 	//handle min and max here
 	if wantsMax {
-		rolls, sum := RollMax(number, sides)
+		rolls, sum, _ := RollMax(number, sides)
 		if match[3] != "" {
 			modifier, _ := strconv.Atoi(match[4])
 			sum, _ = Modify(sum, match[3], modifier)
@@ -158,7 +164,7 @@ func RollExpression(expression string) ([]int, int, error) {
 	}
 
 	if wantsMin {
-		rolls, sum := RollMin(number, sides)
+		rolls, sum, _ := RollMin(number, sides)
 		if match[3] != "" {
 			modifier, _ := strconv.Atoi(match[4])
 			sum, _ = Modify(sum, match[3], modifier)
@@ -170,7 +176,7 @@ func RollExpression(expression string) ([]int, int, error) {
 	var rolls []int
 	var sum int
 	if match[3] == "" {
-		rolls, sum = Roll(number, sides)
+		rolls, sum, _ = Roll(number, sides)
 	} else {
 		modifier, _ := strconv.Atoi(match[4])
 		rolls, _, sum, _ = RollAndModify(number, sides, match[3], modifier)
@@ -213,7 +219,7 @@ func RollExpression(expression string) ([]int, int, error) {
 		}
 		secondSides, _ := strconv.Atoi(match[8])
 		if match[9] == "" {
-			secondRolls, secondSum = Roll(secondNumber, secondSides)
+			secondRolls, secondSum, _ = Roll(secondNumber, secondSides)
 		} else {
 			secondModifier, _ := strconv.Atoi(match[10])
 			secondRolls, _, secondSum, _ = RollAndModify(secondNumber, secondSides, match[9], secondModifier)
@@ -243,8 +249,11 @@ func RollExpression(expression string) ([]int, int, error) {
 }
 
 //RollMax rolls the specified number of n-sided dice then returns the rolled results and max value to use.
-func RollMax(number int, sides int) ([]int, int) {
-	rolls, _ := Roll(number, sides)
+func RollMax(number int, sides int) ([]int, int, error) {
+	if number < 0 {
+		return nil, 0, ErrInvalidNumberOfDice
+	}
+	rolls, _, _ := Roll(number, sides)
 	maxRoll := 0
 	for r, roll := range rolls {
 		if r == 0 {
@@ -254,12 +263,15 @@ func RollMax(number int, sides int) ([]int, int) {
 		maxRoll = max(maxRoll, roll)
 	}
 
-	return rolls, maxRoll
+	return rolls, maxRoll, nil
 }
 
 //RollMin rolls the specified number of n-sided dice then returns the rolled results and min value to use.
-func RollMin(number int, sides int) ([]int, int) {
-	rolls, _ := Roll(number, sides)
+func RollMin(number int, sides int) ([]int, int, error) {
+	if number < 0 {
+		return nil, 0, ErrInvalidNumberOfDice
+	}
+	rolls, _, _ := Roll(number, sides)
 	minRoll := 0
 	for r, roll := range rolls {
 		if r == 0 {
@@ -269,7 +281,7 @@ func RollMin(number int, sides int) ([]int, int) {
 		minRoll = min(minRoll, roll)
 	}
 
-	return rolls, minRoll
+	return rolls, minRoll, nil
 }
 
 //RollChallenge rolls an expression against a provided value. The rolled value must be greater
