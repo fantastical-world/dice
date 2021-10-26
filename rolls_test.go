@@ -1193,82 +1193,100 @@ func Test_RollMin(t *testing.T) {
 	}
 }
 
-func TestRollChallengeMustBeGreater(t *testing.T) {
-	succeeded, result, found, err := RollChallenge("1d20+3", 13, false, nil)
-	if err != nil {
-		t.Errorf("error was not expected, but err was encountered %s\n", err)
+func Test_RollChallenge(t *testing.T) {
+	testCases := []struct {
+		expression    string
+		against       int
+		equalSucceeds bool
+		alert         []int
+		err           error
+	}{
+		{
+			expression:    "1d20+3",
+			against:       13,
+			equalSucceeds: false,
+			alert:         nil,
+			err:           nil,
+		},
+		{
+			expression:    "1d20+3",
+			against:       13,
+			equalSucceeds: true,
+			alert:         nil,
+			err:           nil,
+		},
+		{
+			expression:    "1d1+3",
+			against:       4,
+			equalSucceeds: false,
+			alert:         nil,
+			err:           nil,
+		},
+		{
+			expression:    "1d1+3",
+			against:       4,
+			equalSucceeds: true,
+			alert:         nil,
+			err:           nil,
+		},
+		{
+			expression:    "1d2+3",
+			against:       5,
+			equalSucceeds: true,
+			alert:         []int{1, 2},
+			err:           nil,
+		},
+		{
+			expression:    "hey0+3",
+			against:       5,
+			equalSucceeds: true,
+			alert:         []int{1, 2},
+			err:           ErrInvalidRollExpression,
+		},
+		{
+			expression:    "3d4+2",
+			against:       8,
+			equalSucceeds: false,
+			alert:         []int{1, 2, 3, 4},
+			err:           nil,
+		},
 	}
 
-	if succeeded && (result <= 13) {
-		t.Errorf("expected to fail challenge because %d is not greater than 13, but succeeded\n", result)
-	}
+	for i, tc := range testCases {
+		t.Run(fmt.Sprintf("%d) %s", i, tc.expression), func(t *testing.T) {
+			succeeded, result, found, err := RollChallenge(tc.expression, tc.against, tc.equalSucceeds, tc.alert)
 
-	if found != nil {
-		t.Errorf("found should be nil, but received %v\n", found)
-	}
-}
-func TestRollChallengeCanBeEqual(t *testing.T) {
-	succeeded, result, found, err := RollChallenge("1d20+3", 13, true, nil)
-	if err != nil {
-		t.Errorf("error was not expected, but err was encountered %s\n", err)
-	}
+			if tc.equalSucceeds {
+				if succeeded && (result < tc.against) {
+					t.Errorf("succeded even though %d is not >= %d", result, tc.against)
+				}
+			} else {
+				if succeeded && (result <= tc.against) {
+					t.Errorf("succeded even though %d is not > %d", result, tc.against)
+				}
+			}
 
-	if succeeded && (result < 13) {
-		t.Errorf("expected to fail challenge because %d is less than 13, but succeeded\n", result)
-	}
+			if tc.alert == nil && (len(found) > 0) {
+				t.Errorf("[alert] wanted no alert, got %v", found)
+			}
 
-	if found != nil {
-		t.Errorf("found should be nil, but received %v\n", found)
-	}
-}
+			for _, f := range found {
+				requestedAlert := false
+				for _, a := range tc.alert {
+					if f == a {
+						requestedAlert = true
+					}
+				}
 
-func TestRollChallengeWhenEqualsAndMustBeGreater(t *testing.T) {
-	succeeded, result, _, err := RollChallenge("1d1+3", 4, false, nil)
-	if err != nil {
-		t.Errorf("error was not expected, but err was encountered %s\n", err)
-	}
+				if !requestedAlert {
+					t.Errorf("[alert] wanted alert on %v, got alert on %d", tc.alert, f)
+				}
+			}
 
-	if succeeded {
-		t.Errorf("expected to fail challenge because %d is not greater than 4, but succeeded\n", result)
-	}
-}
-
-func TestRollChallengeWhenEqualsAndCanBeEqual(t *testing.T) {
-	succeeded, result, _, err := RollChallenge("1d1+3", 4, true, nil)
-	if err != nil {
-		t.Errorf("error was not expected, but err was encountered %s\n", err)
-	}
-
-	if !succeeded {
-		t.Errorf("expected to succeed challenge because %d is equal to 4, but failed\n", result)
-	}
-}
-
-func TestRollChallengeWithAlerts(t *testing.T) {
-	//this should always result in a roll of 1 or 2 which means found will have a value because we are alerting on 1 or 2
-	//the modifier allows for a chance to fail the challenge
-	succeeded, result, found, err := RollChallenge("1d2+3", 5, true, []int{1, 2})
-	if err != nil {
-		t.Errorf("error was not expected, but err was encountered %s\n", err)
-	}
-
-	if succeeded && (result < 5) {
-		t.Errorf("expected to fail challenge because %d is less than 5, but succeeded\n", result)
-	}
-
-	if len(found) != 1 {
-		t.Errorf("expected to find a single value in found, but it contained %d\n", len(found))
-	}
-
-	if found[0] != (result - 3) {
-		t.Errorf("expected found to be 1 or 2, but found was %d\n", found[0])
-	}
-}
-
-func TestRollChallengeWithInvalidExpression(t *testing.T) {
-	_, _, _, err := RollChallenge("foobar", 13, false, nil)
-	if err == nil {
-		t.Errorf("error was expected, but didn't receive an error\n")
+			if err != tc.err {
+				t.Errorf("[err] want %s, got %s", tc.err, err)
+			}
+		})
 	}
 }
 
