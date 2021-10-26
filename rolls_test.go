@@ -315,6 +315,10 @@ func Test_ValidRollExpression(t *testing.T) {
 			expression: "-3d4",
 			want:       false,
 		},
+		{
+			expression: "3d-4",
+			want:       false,
+		},
 	}
 
 	for i, tc := range testCases {
@@ -357,8 +361,12 @@ func Test_ContainsValidRollExpression(t *testing.T) {
 			want: 1,
 		},
 		{
-			text: "Nope-2d6+3", //no way to know in text if - is a negative number or just a dash
+			text: "Nope-2d6+3", //no way to know in text if - is a negative number of dice or just a dash
 			want: 1,
+		},
+		{
+			text: "Nope-2d-6+3", // but negative sides are obvious
+			want: 0,
 		},
 	}
 
@@ -508,6 +516,10 @@ func Test_RollExpression(t *testing.T) {
 		},
 		{
 			expression: "-2d4+3",
+			err:        ErrInvalidRollExpression,
+		},
+		{
+			expression: "2d-4",
 			err:        ErrInvalidRollExpression,
 		},
 		{
@@ -673,6 +685,10 @@ func Test_RollExpression(t *testing.T) {
 		},
 		{
 			expression: "min:2d20+1d6",
+			err:        ErrInvalidRollExpression,
+		},
+		{
+			expression: "min:2d-20",
 			err:        ErrInvalidRollExpression,
 		},
 		{
@@ -1386,6 +1402,20 @@ func Test_RollChallenge(t *testing.T) {
 			against:       5,
 			equalSucceeds: true,
 			alert:         []int{1, 2},
+			err:           ErrInvalidRollExpression,
+		},
+		{
+			expression:    "-2d6",
+			against:       5,
+			equalSucceeds: true,
+			alert:         nil,
+			err:           ErrInvalidRollExpression,
+		},
+		{
+			expression:    "2d-20",
+			against:       5,
+			equalSucceeds: true,
+			alert:         nil,
 			err:           ErrInvalidRollExpression,
 		},
 		{
