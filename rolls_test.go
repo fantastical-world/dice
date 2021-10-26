@@ -843,6 +843,7 @@ func Test_RollExpression(t *testing.T) {
 			} else {
 				wantSum += wantSumSecond
 			}
+
 			wantSum /= 2
 			if wantSum != sum {
 				t.Errorf("[sum] want %d, got %d", wantSum, sum)
