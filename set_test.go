@@ -1,96 +1,136 @@
 package dice
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 )
 
-func TestAddingToSet(t *testing.T) {
-	basicSet := Set{Name: "my dice"}
-	err := basicSet.AddDice("main weapon", "1d20+3")
-	if err != nil {
-		t.Errorf("error encountered when adding dice %s", err)
-	}
-	rolls, result, err := basicSet.RollDice("main weapon")
-	if err != nil {
-		t.Errorf("error encountered when rolling %s", err)
-	}
-	//only one roll should be present
-	if len(rolls) != 1 {
-		t.Errorf("expected 1 roll result, but found %d results\n", len(rolls))
-	}
-	//single roll means sum and roll should be equal
-	if (rolls[0] + 3) != result {
-		t.Errorf("expected roll result and sum to be equal, but roll was %d and sum was %d\n", rolls[0], result)
-	}
-	//roll should be 1, 2, 3, 4, 5, ... 20
-	if rolls[0] < 1 || rolls[0] > 20 {
-		t.Errorf("expected roll result to be 1, 2, 3, 4, 5, ... 20, but roll was %d\n", rolls[0])
-	}
+func TestSet_AddDice(t *testing.T) {
+	t.Run("happy path", func(t *testing.T) {
+		want := Set{
+			Name: "my dice",
+			Dice: map[string]string{
+				"main weapon": "1d20+3",
+			},
+		}
+
+		got := Set{Name: "my dice"}
+		err := got.AddDice("main weapon", "1d20+3")
+		if err != nil {
+			t.Errorf("unexpected error, %s", err)
+		}
+
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("want %v, got %v", want, got)
+		}
+	})
+
+	t.Run("error when expression is invalid", func(t *testing.T) {
+		want := Set{
+			Name: "my dice",
+		}
+
+		got := Set{Name: "my dice"}
+		err := got.AddDice("main weapon", "hey0d20+2")
+		if err != ErrInvalidRollExpression {
+			t.Errorf("want %s, got %s", ErrInvalidRollExpression, err)
+		}
+
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("want %v, got %v", want, got)
+		}
+	})
 }
 
-func TestAddingDiceWithBadExpression(t *testing.T) {
-	basicSet := Set{Name: "my dice"}
-	err := basicSet.AddDice("main weapon", "foobar")
-	if err == nil {
-		t.Errorf("expected an error, but none was received")
-	}
+func TestSet_RollDice(t *testing.T) {
+	t.Run("happy path", func(t *testing.T) {
+		subject := Set{Name: "my dice"}
+		err := subject.AddDice("main weapon", "1d20+3")
+		if err != nil {
+			t.Errorf("unexpected error, %s", err)
+		}
+
+		rolls, sum, err := subject.RollDice("main weapon")
+		if err != nil {
+			t.Errorf("unexpected error, %s", err)
+		}
+		//simple test only since roll tests cover much more
+		if len(rolls) != 1 {
+			t.Errorf("[len] want %d, got %d", 1, len(rolls))
+		}
+		wantSum := 0
+		for _, roll := range rolls {
+			wantSum += roll
+		}
+		wantSum += 3
+		if wantSum != sum {
+			t.Errorf("[sum] want %d, got %d", wantSum, sum)
+		}
+
+		for _, roll := range rolls {
+			if roll < 1 || roll > 20 {
+				t.Errorf("[rolls] want roll %d-%d, got %d", 1, 20, roll)
+			}
+		}
+	})
+
+	t.Run("error when no dice in set", func(t *testing.T) {
+		subject := Set{Name: "my dice"}
+		_, _, err := subject.RollDice("main weapon")
+		if err != ErrEmptyDiceSet {
+			t.Errorf("want %s, got %s", ErrEmptyDiceSet, err)
+		}
+	})
+
+	t.Run("error when specified dice does not exist", func(t *testing.T) {
+		subject := Set{Name: "my dice"}
+		err := subject.AddDice("main weapon", "1d20+3")
+		if err != nil {
+			t.Errorf("unexpected error, %s", err)
+		}
+
+		_, _, err = subject.RollDice("no dice")
+		if err != ErrDiceNotFound {
+			t.Errorf("want %s, got %s", ErrDiceNotFound, err)
+		}
+	})
 }
 
-func TestRollingWithoutDice(t *testing.T) {
-	basicSet := Set{Name: "my dice"}
-	_, _, err := basicSet.RollDice("main weapon")
-	if err == nil {
-		t.Errorf("expected an error, but none was received")
-	}
-}
+func TestSet_ListDice(t *testing.T) {
+	t.Run("happy path", func(t *testing.T) {
+		sb := strings.Builder{}
+		sb.WriteString("Dex Save 1d20+4\n")
+		sb.WriteString("main weapon 1d20+3\n")
+		sb.WriteString("secondary weapon 3d6\n")
+		want := sb.String()
 
-func TestRollingDiceThatDoesNotExist(t *testing.T) {
-	basicSet := Set{Name: "my dice"}
-	err := basicSet.AddDice("main weapon", "1d20+3")
-	if err != nil {
-		t.Errorf("error encountered when adding dice %s", err)
-	}
-	_, _, err = basicSet.RollDice("not here")
-	if err == nil {
-		t.Errorf("expected an error, but none was received")
-	}
-}
+		subject := Set{Name: "my dice"}
+		err := subject.AddDice("main weapon", "1d20+3")
+		if err != nil {
+			t.Errorf("unexpected error, %s", err)
+		}
+		err = subject.AddDice("secondary weapon", "3d6")
+		if err != nil {
+			t.Errorf("unexpected error, %s", err)
+		}
+		err = subject.AddDice("Dex Save", "1d20+4")
+		if err != nil {
+			t.Errorf("unexpected error, %s", err)
+		}
 
-func TestList(t *testing.T) {
-	basicSet := Set{Name: "my dice"}
-	err := basicSet.AddDice("main weapon", "1d20+3")
-	if err != nil {
-		t.Errorf("error encountered when adding dice %s", err)
-	}
-	err = basicSet.AddDice("secondary weapon", "3d6")
-	if err != nil {
-		t.Errorf("error encountered when adding dice %s", err)
-	}
-	err = basicSet.AddDice("Dex Save", "1d20+4")
-	if err != nil {
-		t.Errorf("error encountered when adding dice %s", err)
-	}
+		got := subject.ListDice()
+		if got != want {
+			t.Errorf("want %s, got %s", want, got)
+		}
+	})
 
-	listing := basicSet.ListDice()
-
-	sb := strings.Builder{}
-	sb.WriteString("Dex Save 1d20+4\n")
-	sb.WriteString("main weapon 1d20+3\n")
-	sb.WriteString("secondary weapon 3d6\n")
-
-	expected := sb.String()
-
-	if expected != listing {
-		t.Errorf("listing not as expected\nexpected:\n%s\nactual:\n%s\n", expected, listing)
-	}
-}
-
-func TestNoDiceList(t *testing.T) {
-	basicSet := Set{Name: "my dice"}
-	listing := basicSet.ListDice()
-
-	if listing != "" {
-		t.Errorf("want:\ngot:\n%s\n", listing)
-	}
+	t.Run("empty set", func(t *testing.T) {
+		want := ""
+		subject := Set{Name: "my dice"}
+		got := subject.ListDice()
+		if got != want {
+			t.Errorf("want %s, got %s", want, got)
+		}
+	})
 }
