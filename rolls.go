@@ -270,18 +270,19 @@ func RollMin(number int, sides int) ([]int, int) {
 //by providing a slice of values, if any were rolled they will be returned.
 //
 //An error is returned if the expression is not a valid roll expression.
-func RollChallenge(expression string, against int, equalSucceeds bool, alertOn []int) (succeeded bool, result int, found []int, err error) {
+func RollChallenge(expression string, against int, equalSucceeds bool, alertOn []int) (bool, int, []int, error) {
 	rolls, result, err := RollExpression(expression)
 	if err != nil {
 		return false, 0, nil, err
 	}
 
-	succeeded = (result > against)
+	succeeded := (result > against)
 
 	if !succeeded && equalSucceeds {
 		succeeded = (result == against)
 	}
 
+	var found []int
 	if len(alertOn) > 0 {
 		for _, roll := range rolls {
 			for _, check := range alertOn {
@@ -293,7 +294,7 @@ func RollChallenge(expression string, against int, equalSucceeds bool, alertOn [
 		}
 	}
 
-	return
+	return succeeded, result, found, nil
 }
 
 func RollString(value string) string {
