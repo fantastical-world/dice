@@ -1310,3 +1310,59 @@ func Test_RollString(t *testing.T) {
 		})
 	}
 }
+
+func Test_min(t *testing.T) {
+	testCases := []struct {
+		want int
+		num1 int
+		num2 int
+	}{
+		{
+			want: 3,
+			num1: 7,
+			num2: 3,
+		},
+		{
+			want: -2,
+			num1: -2,
+			num2: 0,
+		},
+	}
+
+	for i, tc := range testCases {
+		t.Run(fmt.Sprintf("%d)", i), func(t *testing.T) {
+			got := min(tc.num1, tc.num2)
+			if got != tc.want {
+				t.Errorf("want %d, got %d", tc.want, got)
+			}
+		})
+	}
+}
+
+func Test_max(t *testing.T) {
+	testCases := []struct {
+		want int
+		num1 int
+		num2 int
+	}{
+		{
+			want: 7,
+			num1: 7,
+			num2: 3,
+		},
+		{
+			want: 0,
+			num1: -2,
+			num2: 0,
+		},
+	}
+
+	for i, tc := range testCases {
+		t.Run(fmt.Sprintf("%d)", i), func(t *testing.T) {
+			got := max(tc.num1, tc.num2)
+			if got != tc.want {
+				t.Errorf("want %d, got %d", tc.want, got)
+			}
+		})
+	}
+}
