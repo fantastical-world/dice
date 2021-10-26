@@ -42,11 +42,8 @@ func Test_Roll(t *testing.T) {
 			rollMax: 4,
 		},
 		{
-			number:  0,
-			sides:   4,
-			rollLen: 0,
-			rollMin: 0,
-			rollMax: 0,
+			number: 0,
+			sides:  4,
 		},
 	}
 
@@ -110,9 +107,6 @@ func Test_RollAndModify(t *testing.T) {
 			sides:    20,
 			operator: "Z",
 			modifer:  3,
-			rollLen:  0,
-			rollMin:  0,
-			rollMax:  0,
 			err:      ErrInvalidOperator,
 		},
 		{
@@ -130,9 +124,6 @@ func Test_RollAndModify(t *testing.T) {
 			sides:    4,
 			operator: "+",
 			modifer:  2,
-			rollLen:  0,
-			rollMin:  0,
-			rollMax:  0,
 			err:      nil,
 		},
 		{
@@ -140,9 +131,6 @@ func Test_RollAndModify(t *testing.T) {
 			sides:    4,
 			operator: "-",
 			modifer:  2,
-			rollLen:  0,
-			rollMin:  0,
-			rollMax:  0,
 			err:      nil,
 		},
 	}
@@ -292,6 +280,10 @@ func Test_ValidRollExpression(t *testing.T) {
 			expression: "Roll a 2d6 and 3d12+3",
 			want:       false,
 		},
+		{
+			expression: "0d4+8",
+			want:       true,
+		},
 	}
 
 	for i, tc := range testCases {
@@ -328,6 +320,10 @@ func Test_ContainsValidRollExpression(t *testing.T) {
 		{
 			text: "These go together 2d12+3+d8, but not with this {{2d6}}",
 			want: 2,
+		},
+		{
+			text: "Roll no dice 0d6+3 but add three anyways.",
+			want: 1,
 		},
 	}
 
@@ -469,20 +465,15 @@ func Test_RollExpression(t *testing.T) {
 		},
 		{
 			expression: "heyo",
-			rollLen:    0,
 			err:        ErrInvalidRollExpression,
 		},
 		{
 			expression: "a5d10*zz",
-			rollLen:    0,
 			err:        ErrInvalidRollExpression,
 		},
 		{
 			expression: "0d4+3",
 			modifer:    3,
-			rollLen:    0,
-			rollMin:    0,
-			rollMax:    0,
 			err:        nil,
 		},
 		{
@@ -491,9 +482,6 @@ func Test_RollExpression(t *testing.T) {
 			subtractDie:              true,
 			modifer:                  3,
 			secondModifier:           +2,
-			rollLen:                  0,
-			rollMin:                  0,
-			rollMax:                  0,
 			err:                      nil,
 		},
 	}
@@ -566,17 +554,15 @@ func Test_RollExpression(t *testing.T) {
 			err:        nil,
 		},
 		{
+			expression: "max:0d20",
+			err:        nil,
+		},
+		{
 			expression: "max:2d20+1d6",
-			rollLen:    0,
-			rollMin:    0,
-			rollMax:    0,
 			err:        ErrInvalidRollExpression,
 		},
 		{
 			expression: "max:2d20zzz",
-			rollLen:    0,
-			rollMin:    0,
-			rollMax:    0,
 			err:        ErrInvalidRollExpression,
 		},
 	}
@@ -639,17 +625,15 @@ func Test_RollExpression(t *testing.T) {
 			err:        nil,
 		},
 		{
+			expression: "min:0d20",
+			err:        nil,
+		},
+		{
 			expression: "min:2d20+1d6",
-			rollLen:    0,
-			rollMin:    0,
-			rollMax:    0,
 			err:        ErrInvalidRollExpression,
 		},
 		{
 			expression: "min:2E20fff",
-			rollLen:    0,
-			rollMin:    0,
-			rollMax:    0,
 			err:        ErrInvalidRollExpression,
 		},
 	}
@@ -715,6 +699,15 @@ func Test_RollExpression(t *testing.T) {
 			err:        nil,
 		},
 		{
+			expression: "dub:0d8+3",
+			modifer:    3,
+			err:        nil,
+		},
+		{
+			expression: "dub:0d8",
+			err:        nil,
+		},
+		{
 			expression: "dub:3d8+3+d6",
 			modifer:    3,
 			rollLen:    4,
@@ -756,9 +749,6 @@ func Test_RollExpression(t *testing.T) {
 		},
 		{
 			expression: "dub:2E20fff",
-			rollLen:    0,
-			rollMin:    0,
-			rollMax:    0,
 			err:        ErrInvalidRollExpression,
 		},
 	}
@@ -834,6 +824,15 @@ func Test_RollExpression(t *testing.T) {
 			err:        nil,
 		},
 		{
+			expression: "half:0d8+3",
+			modifer:    3,
+			err:        nil,
+		},
+		{
+			expression: "half:0d8",
+			err:        nil,
+		},
+		{
 			expression: "half:3d8+3+d6",
 			modifer:    3,
 			rollLen:    4,
@@ -863,9 +862,6 @@ func Test_RollExpression(t *testing.T) {
 		},
 		{
 			expression: "half:2E20fff",
-			rollLen:    0,
-			rollMin:    0,
-			rollMax:    0,
 			err:        ErrInvalidRollExpression,
 		},
 	}
@@ -941,6 +937,11 @@ func Test_RollExpression(t *testing.T) {
 			err:        nil,
 		},
 		{
+			expression: "dropL:0d4+3",
+			modifer:    3,
+			err:        nil,
+		},
+		{
 			expression:               "dropL:3d8+3+d6",
 			secondExpressionDieCount: 1,
 			modifer:                  3,
@@ -972,9 +973,6 @@ func Test_RollExpression(t *testing.T) {
 		},
 		{
 			expression: "dropL:2E20fff",
-			rollLen:    0,
-			rollMin:    0,
-			rollMax:    0,
 			err:        ErrInvalidRollExpression,
 		},
 	}
@@ -1054,6 +1052,11 @@ func Test_RollExpression(t *testing.T) {
 			rollLen:    3,
 			rollMin:    1,
 			rollMax:    8,
+			err:        nil,
+		},
+		{
+			expression: "dropH:0d8+3",
+			modifer:    3,
 			err:        nil,
 		},
 		{
@@ -1170,11 +1173,8 @@ func Test_RollMax(t *testing.T) {
 			rollMax: 100,
 		},
 		{
-			number:  0,
-			sides:   4,
-			rollLen: 0,
-			rollMin: 0,
-			rollMax: 0,
+			number: 0,
+			sides:  4,
 		},
 	}
 
@@ -1230,11 +1230,8 @@ func Test_RollMin(t *testing.T) {
 			rollMax: 100,
 		},
 		{
-			number:  0,
-			sides:   100,
-			rollLen: 0,
-			rollMin: 0,
-			rollMax: 0,
+			number: 0,
+			sides:  100,
 		},
 	}
 

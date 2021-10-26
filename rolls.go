@@ -178,16 +178,24 @@ func RollExpression(expression string) ([]int, int, error) {
 
 	//the drop prefixes only apply to the first expression, the second expression is treated like a modifier
 	if dropLowest {
-		lowest := rolls[0]
-		for _, roll := range rolls {
+		lowest := 0
+		for r, roll := range rolls {
+			if r == 0 {
+				lowest = roll
+				continue
+			}
 			lowest = min(lowest, roll)
 		}
 		sum = sum - lowest
 	}
 
 	if dropHighest {
-		highest := rolls[0]
-		for _, roll := range rolls {
+		highest := 0
+		for r, roll := range rolls {
+			if r == 0 {
+				highest = roll
+				continue
+			}
 			highest = max(highest, roll)
 		}
 		sum = sum - highest
