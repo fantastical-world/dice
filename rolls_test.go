@@ -41,6 +41,13 @@ func Test_Roll(t *testing.T) {
 			rollMin: 1,
 			rollMax: 4,
 		},
+		{
+			number:  0,
+			sides:   4,
+			rollLen: 0,
+			rollMin: 0,
+			rollMax: 0,
+		},
 	}
 
 	for i, tc := range testCases {
@@ -118,6 +125,26 @@ func Test_RollAndModify(t *testing.T) {
 			rollMax:  4,
 			err:      nil,
 		},
+		{
+			number:   0,
+			sides:    4,
+			operator: "+",
+			modifer:  2,
+			rollLen:  0,
+			rollMin:  0,
+			rollMax:  0,
+			err:      nil,
+		},
+		{
+			number:   0,
+			sides:    4,
+			operator: "-",
+			modifer:  2,
+			rollLen:  0,
+			rollMin:  0,
+			rollMax:  0,
+			err:      nil,
+		},
 	}
 
 	for i, tc := range testCases {
@@ -187,6 +214,13 @@ func Test_Modify(t *testing.T) {
 			modifer:  1,
 			want:     0,
 			err:      ErrInvalidOperator,
+		},
+		{
+			value:    0,
+			operator: "-",
+			modifer:  1,
+			want:     -1,
+			err:      nil,
 		},
 	}
 
@@ -442,6 +476,25 @@ func Test_RollExpression(t *testing.T) {
 			expression: "a5d10*zz",
 			rollLen:    0,
 			err:        ErrInvalidRollExpression,
+		},
+		{
+			expression: "0d4+3",
+			modifer:    3,
+			rollLen:    0,
+			rollMin:    0,
+			rollMax:    0,
+			err:        nil,
+		},
+		{
+			expression:               "0d4+3-0d6+2",
+			secondExpressionDieCount: 0,
+			subtractDie:              true,
+			modifer:                  3,
+			secondModifier:           +2,
+			rollLen:                  0,
+			rollMin:                  0,
+			rollMax:                  0,
+			err:                      nil,
 		},
 	}
 
@@ -1116,6 +1169,13 @@ func Test_RollMax(t *testing.T) {
 			rollMin: 1,
 			rollMax: 100,
 		},
+		{
+			number:  0,
+			sides:   4,
+			rollLen: 0,
+			rollMin: 0,
+			rollMax: 0,
+		},
 	}
 
 	for i, tc := range testCases {
@@ -1125,8 +1185,12 @@ func Test_RollMax(t *testing.T) {
 				t.Errorf("[len] want %d, got %d", tc.rollLen, len(rolls))
 			}
 
-			wantMax := rolls[0]
-			for _, roll := range rolls {
+			wantMax := 0
+			for r, roll := range rolls {
+				if r == 0 {
+					wantMax = roll
+					continue
+				}
 				if roll > wantMax {
 					wantMax = roll
 				}
@@ -1165,6 +1229,13 @@ func Test_RollMin(t *testing.T) {
 			rollMin: 1,
 			rollMax: 100,
 		},
+		{
+			number:  0,
+			sides:   100,
+			rollLen: 0,
+			rollMin: 0,
+			rollMax: 0,
+		},
 	}
 
 	for i, tc := range testCases {
@@ -1174,8 +1245,12 @@ func Test_RollMin(t *testing.T) {
 				t.Errorf("[len] want %d, got %d", tc.rollLen, len(rolls))
 			}
 
-			wantMin := rolls[0]
-			for _, roll := range rolls {
+			wantMin := 0
+			for r, roll := range rolls {
+				if r == 0 {
+					wantMin = roll
+					continue
+				}
 				if roll < wantMin {
 					wantMin = roll
 				}
@@ -1248,6 +1323,13 @@ func Test_RollChallenge(t *testing.T) {
 			against:       8,
 			equalSucceeds: false,
 			alert:         []int{1, 2, 3, 4},
+			err:           nil,
+		},
+		{
+			expression:    "0d4+2",
+			against:       2,
+			equalSucceeds: false,
+			alert:         []int{2},
 			err:           nil,
 		},
 	}
