@@ -1,21 +1,21 @@
 package dice
 
 import (
+	"fmt"
 	"reflect"
-	"strings"
 	"testing"
 )
 
 func TestSet_AddDice(t *testing.T) {
 	t.Run("happy path", func(t *testing.T) {
-		want := Set{
+		want := &Set{
 			Name: "my dice",
 			Dice: map[string]string{
 				"main weapon": "1d20+3",
 			},
 		}
 
-		got := Set{Name: "my dice"}
+		got := &Set{Name: "my dice"}
 		err := got.AddDice("main weapon", "1d20+3")
 		if err != nil {
 			t.Errorf("unexpected error, %s", err)
@@ -27,11 +27,11 @@ func TestSet_AddDice(t *testing.T) {
 	})
 
 	t.Run("error when expression is invalid", func(t *testing.T) {
-		want := Set{
+		want := &Set{
 			Name: "my dice",
 		}
 
-		got := Set{Name: "my dice"}
+		got := &Set{Name: "my dice"}
 		err := got.AddDice("main weapon", "hey0d20+2")
 		if err != ErrInvalidRollExpression {
 			t.Errorf("want %s, got %s", ErrInvalidRollExpression, err)
@@ -99,11 +99,7 @@ func TestSet_RollDice(t *testing.T) {
 
 func TestSet_ListDice(t *testing.T) {
 	t.Run("happy path", func(t *testing.T) {
-		sb := strings.Builder{}
-		sb.WriteString("Dex Save 1d20+4\n")
-		sb.WriteString("main weapon 1d20+3\n")
-		sb.WriteString("secondary weapon 3d6\n")
-		want := sb.String()
+		want := []string{"Dex Save,1d20+4", "main weapon,1d20+3", "secondary weapon,3d6"}
 
 		subject := Set{Name: "my dice"}
 		err := subject.AddDice("main weapon", "1d20+3")
@@ -120,17 +116,57 @@ func TestSet_ListDice(t *testing.T) {
 		}
 
 		got := subject.ListDice()
-		if got != want {
+		if !reflect.DeepEqual(got, want) {
 			t.Errorf("want %s, got %s", want, got)
 		}
 	})
 
 	t.Run("empty set", func(t *testing.T) {
-		want := ""
 		subject := Set{Name: "my dice"}
 		got := subject.ListDice()
-		if got != want {
-			t.Errorf("want %s, got %s", want, got)
+		if got != nil {
+			t.Errorf("want nil, got %s", got)
 		}
 	})
+}
+
+func TestSet_RemoveDice(t *testing.T) {
+	t.Run("happy path", func(t *testing.T) {
+		subject := Set{Name: "my dice"}
+		err := subject.AddDice("main weapon", "1d20+3")
+		if err != nil {
+			t.Errorf("unexpected error, %s", err)
+		}
+
+		if len(subject.Dice) != 1 {
+			t.Errorf("want 1, got %d", len(subject.Dice))
+		}
+
+		subject.RemoveDice("main weapon")
+
+		if len(subject.Dice) != 0 {
+			t.Errorf("want 0, got %d", len(subject.Dice))
+		}
+	})
+}
+
+func TestSet_RWMutex(t *testing.T) {
+	subject := Set{Name: "my dice"}
+	go func() {
+		for i := 0; i < 100; i++ {
+			subject.AddDice(fmt.Sprintf("%d", i), "1d6")
+		}
+	}()
+
+	go func() {
+		for i := 0; i < 100; i++ {
+			subject.RollDice(fmt.Sprintf("%d", i))
+		}
+	}()
+
+	go func() {
+		for i := 0; i < 100; i++ {
+			subject.RemoveDice(fmt.Sprintf("%d", i))
+		}
+	}()
 }
