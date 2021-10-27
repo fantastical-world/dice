@@ -9,13 +9,12 @@ import (
 func TestSet_AddDice(t *testing.T) {
 	t.Run("happy path", func(t *testing.T) {
 		want := &Set{
-			Name: "my dice",
-			Dice: map[string]string{
+			dice: map[string]string{
 				"main weapon": "1d20+3",
 			},
 		}
 
-		got := &Set{Name: "my dice"}
+		got := &Set{}
 		err := got.AddDice("main weapon", "1d20+3")
 		if err != nil {
 			t.Errorf("unexpected error, %s", err)
@@ -27,11 +26,8 @@ func TestSet_AddDice(t *testing.T) {
 	})
 
 	t.Run("error when expression is invalid", func(t *testing.T) {
-		want := &Set{
-			Name: "my dice",
-		}
-
-		got := &Set{Name: "my dice"}
+		want := &Set{}
+		got := &Set{}
 		err := got.AddDice("main weapon", "hey0d20+2")
 		if err != ErrInvalidRollExpression {
 			t.Errorf("want %s, got %s", ErrInvalidRollExpression, err)
@@ -45,7 +41,7 @@ func TestSet_AddDice(t *testing.T) {
 
 func TestSet_RollDice(t *testing.T) {
 	t.Run("happy path", func(t *testing.T) {
-		subject := Set{Name: "my dice"}
+		subject := Set{}
 		err := subject.AddDice("main weapon", "1d20+3")
 		if err != nil {
 			t.Errorf("unexpected error, %s", err)
@@ -76,7 +72,7 @@ func TestSet_RollDice(t *testing.T) {
 	})
 
 	t.Run("error when no dice in set", func(t *testing.T) {
-		subject := Set{Name: "my dice"}
+		subject := Set{}
 		_, _, err := subject.RollDice("main weapon")
 		if err != ErrEmptyDiceSet {
 			t.Errorf("want %s, got %s", ErrEmptyDiceSet, err)
@@ -84,7 +80,7 @@ func TestSet_RollDice(t *testing.T) {
 	})
 
 	t.Run("error when specified dice does not exist", func(t *testing.T) {
-		subject := Set{Name: "my dice"}
+		subject := Set{}
 		err := subject.AddDice("main weapon", "1d20+3")
 		if err != nil {
 			t.Errorf("unexpected error, %s", err)
@@ -101,7 +97,7 @@ func TestSet_ListDice(t *testing.T) {
 	t.Run("happy path", func(t *testing.T) {
 		want := []string{"Dex Save,1d20+4", "main weapon,1d20+3", "secondary weapon,3d6"}
 
-		subject := Set{Name: "my dice"}
+		subject := Set{}
 		err := subject.AddDice("main weapon", "1d20+3")
 		if err != nil {
 			t.Errorf("unexpected error, %s", err)
@@ -122,7 +118,7 @@ func TestSet_ListDice(t *testing.T) {
 	})
 
 	t.Run("empty set", func(t *testing.T) {
-		subject := Set{Name: "my dice"}
+		subject := Set{}
 		got := subject.ListDice()
 		if got != nil {
 			t.Errorf("want nil, got %s", got)
@@ -132,26 +128,26 @@ func TestSet_ListDice(t *testing.T) {
 
 func TestSet_RemoveDice(t *testing.T) {
 	t.Run("happy path", func(t *testing.T) {
-		subject := Set{Name: "my dice"}
+		subject := Set{}
 		err := subject.AddDice("main weapon", "1d20+3")
 		if err != nil {
 			t.Errorf("unexpected error, %s", err)
 		}
 
-		if len(subject.Dice) != 1 {
-			t.Errorf("want 1, got %d", len(subject.Dice))
+		if len(subject.dice) != 1 {
+			t.Errorf("want 1, got %d", len(subject.dice))
 		}
 
 		subject.RemoveDice("main weapon")
 
-		if len(subject.Dice) != 0 {
-			t.Errorf("want 0, got %d", len(subject.Dice))
+		if len(subject.dice) != 0 {
+			t.Errorf("want 0, got %d", len(subject.dice))
 		}
 	})
 }
 
 func TestSet_RWMutex(t *testing.T) {
-	subject := Set{Name: "my dice"}
+	subject := Set{}
 	go func() {
 		for i := 0; i < 100; i++ {
 			subject.AddDice(fmt.Sprintf("%d", i), "1d6")
