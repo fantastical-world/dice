@@ -998,3 +998,127 @@ func Test_RollString(t *testing.T) {
 		})
 	}
 }
+
+//testing the regex since it can be used directly by other modules
+
+func TestRollExpressionRE_MatchString(t *testing.T) {
+	testCases := []struct {
+		expression string
+		want       bool
+	}{
+		{
+			expression: "This {{2d6+3}} is valid.",
+			want:       false,
+		},
+		{
+			expression: "This 2d6+3 is a valid expression. But I want only an expression!",
+			want:       false,
+		},
+		{
+			expression: "No expression at all.",
+			want:       false,
+		},
+		{
+			expression: "3d-6",
+			want:       false,
+		},
+		{
+			expression: "2d20",
+			want:       true,
+		},
+		{
+			expression: "2d20+3-d3+1",
+			want:       true,
+		},
+		{
+			expression: "No 2d20+3+1d6 nope.",
+			want:       false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.expression, func(t *testing.T) {
+			got := RollExpressionRE.MatchString(tc.expression)
+			if got != tc.want {
+				t.Errorf("want %t, got %t", tc.want, got)
+			}
+		})
+	}
+}
+
+func TestContainsRollExpressionRE_MatchString(t *testing.T) {
+	testCases := []struct {
+		expression string
+		want       bool
+	}{
+		{
+			expression: "This {{2d6+3}} is valid.",
+			want:       true,
+		},
+		{
+			expression: "This 2d6+3 is a valid expression.",
+			want:       true,
+		},
+		{
+			expression: "No expression at all.",
+			want:       false,
+		},
+		{
+			expression: "3d-6",
+			want:       false,
+		},
+		{
+			expression: "2d20",
+			want:       true,
+		},
+		{
+			expression: "Yup 2d20+3+1d6 I do.",
+			want:       true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.expression, func(t *testing.T) {
+			got := ContainsRollExpressionRE.MatchString(tc.expression)
+			if got != tc.want {
+				t.Errorf("want %t, got %t", tc.want, got)
+			}
+		})
+	}
+}
+func TestContainsRollExpressionBracedRE_MatchString(t *testing.T) {
+	testCases := []struct {
+		expression string
+		want       bool
+	}{
+		{
+			expression: "This {{2d6+3}} is valid.",
+			want:       true,
+		},
+		{
+			expression: "This 2d6+3 is a valid expression, but not a braced expression.",
+			want:       false,
+		},
+		{
+			expression: "No expression at all",
+			want:       false,
+		},
+		{
+			expression: "{{2d20+3+1d6}}",
+			want:       true,
+		},
+		{
+			expression: "Sorry {{2d-20+3}}",
+			want:       false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.expression, func(t *testing.T) {
+			got := ContainsRollExpressionBracedRE.MatchString(tc.expression)
+			if got != tc.want {
+				t.Errorf("want %t, got %t", tc.want, got)
+			}
+		})
+	}
+}
