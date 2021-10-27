@@ -166,6 +166,12 @@ func TestSet_RWMutex(t *testing.T) {
 
 	go func() {
 		for i := 0; i < 100; i++ {
+			subject.ListDice()
+		}
+	}()
+
+	go func() {
+		for i := 0; i < 100; i++ {
 			subject.RemoveDice(fmt.Sprintf("%d", i))
 		}
 	}()
