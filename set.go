@@ -78,3 +78,13 @@ func (s *Set) ListDice() []string {
 
 	return list
 }
+
+func NewSet(dice map[string]string) *Set {
+	new := &Set{}
+
+	for k, v := range dice {
+		new.AddDice(k, v)
+	}
+
+	return new
+}

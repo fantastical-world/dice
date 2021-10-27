@@ -146,7 +146,22 @@ func TestSet_RemoveDice(t *testing.T) {
 	})
 }
 
-func TestSet_RWMutex(t *testing.T) {
+func Test_NewSet(t *testing.T) {
+	t.Run("happy path", func(t *testing.T) {
+		want := &Set{
+			dice: map[string]string{
+				"main weapon": "1d20+3",
+			},
+		}
+
+		got := NewSet(map[string]string{"main weapon": "1d20+3"})
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("want %v, got %v", want, got)
+		}
+	})
+}
+
+func Test_race(t *testing.T) {
 	subject := Set{}
 	go func() {
 		for i := 0; i < 100; i++ {
