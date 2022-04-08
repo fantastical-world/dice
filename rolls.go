@@ -1,14 +1,14 @@
 //Package dice offers functions and types for rolling any number of custom dice.
 //You can use the various Roll functions directly by passing the number of dice
 //to roll, the number of sides, modifiers, etc. The results returned will typically
-//include the value of each dice rolled, their sum, and a modified sum if a modifer was provided.
+//include the value of each dice rolled, their sum, and a modified sum if a modifier was provided.
 //
-//This package also provides a convenence function that excepts "Roll Expressions".
+//This package also provides a convenience function that excepts "Roll Expressions".
 //A roll expression follows the typical 1d4+1 format used in most RPGs.
 //With this single function you can satisfy most of your roll needs.
 //
 //Commonly used rolls can be saved for later use by creating a Set and adding them to it.
-//A set acts like a dice bag except you can save expressions, not just dice.
+//A set acts like a die bag except you can save expressions, not just dice.
 package dice
 
 import (

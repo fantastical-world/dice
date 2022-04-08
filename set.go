@@ -38,7 +38,7 @@ func (s *Set) RemoveDice(name string) {
 	delete(s.dice, name)
 }
 
-//RollDice rolls the named custom dice's expression and returns its results.
+//RollDice rolls the named custom expression and returns its results.
 func (s *Set) RollDice(name string) (rolls []int, sum int, err error) {
 	s.m.RLock()
 	defer s.m.RUnlock()
@@ -80,11 +80,11 @@ func (s *Set) ListDice() []string {
 }
 
 func NewSet(dice map[string]string) *Set {
-	new := &Set{}
+	newSet := &Set{}
 
 	for k, v := range dice {
-		new.AddDice(k, v)
+		_ = newSet.AddDice(k, v)
 	}
 
-	return new
+	return newSet
 }
