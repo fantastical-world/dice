@@ -12,10 +12,10 @@ func RollChallenge(expression string, against int, equalSucceeds bool, alertOn [
 		return false, 0, nil, err
 	}
 
-	succeeded := (result > against)
+	succeeded := result > against
 
 	if !succeeded && equalSucceeds {
-		succeeded = (result == against)
+		succeeded = result == against
 	}
 
 	var found []int

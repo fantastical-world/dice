@@ -1,14 +1,14 @@
 package dice
 
-type DiceError string
+type Error string
 
-func (d DiceError) Error() string { return string(d) }
+func (d Error) Error() string { return string(d) }
 
 var (
-	ErrInvalidRollExpression = DiceError("not a valid roll expression")
-	ErrEmptyDiceSet          = DiceError("you do not have any dice in your set")
-	ErrDiceNotFound          = DiceError("dice not found")
-	ErrInvalidOperator       = DiceError("invalid operator")
-	ErrInvalidNumberOfDice   = DiceError("invalid number of dice")
-	ErrInvalidNumberOfSides  = DiceError("invalid number of sides")
+	ErrInvalidRollExpression = Error("not a valid roll expression")
+	ErrEmptyDiceSet          = Error("you do not have any dice in your set")
+	ErrDiceNotFound          = Error("dice not found")
+	ErrInvalidOperator       = Error("invalid operator")
+	ErrInvalidNumberOfDice   = Error("invalid number of dice")
+	ErrInvalidNumberOfSides  = Error("invalid number of sides")
 )
