@@ -1,3 +1,3 @@
 module github.com/fantastical-world/dice
 
-go 1.17
+go 1.21
